@@ -1,6 +1,7 @@
 /* =======================
    script.js — ใช้ร่วม 2 หน้า (index + contact-admin)
    ปลอดภัย: ไม่มี innerHTML, ไม่มี eval, ไม่มี inline script
+   ✅ ไม่เซ็ต style ตรง ๆ เพื่อเลี่ยง inline-style; ใช้ class แทน
    ======================= */
 
 /* ---------- รายชื่อ (คงของเดิม) ---------- */
@@ -39,13 +40,17 @@ const data = [
 const needFix = [1,2,5,8,9,12,19,29,49,57,59,64,65,72,75,77,84,101,106,115,116,117].map(n => n-1);
 
 /* ---------- ยูทิลทั่วไป ---------- */
-function domReady(cb){ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',cb);} else {cb();} }
+function domReady(cb){
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',cb);
+  } else { cb(); }
+}
 const normalize = (s)=> (s||'').toString().trim().replace(/\s+/g,' ').toLowerCase();
 
 // Levenshtein (สำหรับ fuzzy search)
 function levenshtein(a,b){
   const m=a.length,n=b.length; if(!m) return n; if(!n) return m;
-  const dp=Array.from({length:m+1},(_,i)=>Array(n+1).fill(0));
+  const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
   for(let i=0;i<=m;i++) dp[i][0]=i;
   for(let j=0;j<=n;j++) dp[0][j]=j;
   for(let i=1;i<=m;i++){
@@ -65,10 +70,9 @@ function initIndexPage(){
   const searchInput= document.getElementById('name-search');
   const searchBtn  = document.getElementById('search-btn');
   const resetBtn   = document.getElementById('reset-btn');
-
   if(!nameSelect || !resultBox) return; // ไม่ใช่หน้านี้ก็ออก
 
-  // เติมรายชื่อใน dropdown
+  // เติมรายชื่อใน dropdown (ป้องกัน XSS ด้วย textContent)
   if (nameSelect.options.length <= 1) {
     data.forEach(name => {
       const opt=document.createElement('option');
@@ -80,7 +84,7 @@ function initIndexPage(){
   function clearMatchHighlight(){ nameSelect.classList.remove('is-matched'); }
   nameSelect.addEventListener('change', clearMatchHighlight);
 
-  // ค้นหาชื่อที่ใกล้ที่สุด
+  // ค้นหาชื่อที่ใกล้ที่สุด (fuzzy)
   function findBestIndex(query){
     const q=normalize(query); if(q.length<2) return -1;
     let bestIdx=-1, bestScore=-Infinity;
@@ -97,36 +101,36 @@ function initIndexPage(){
     return bestIdx;
   }
 
-  // แสดงผลสถานะ
+  // แสดงผลสถานะ (ใช้ class แทนการแก้ style ตรง ๆ เพื่อให้ CSP ไม่บล็อก)
+  function setResult(message, mode){ // mode: ok|bad|warn|hide
+    resultBox.classList.remove('hidden','status-ok','status-bad','status-warn');
+    if(mode==='hide'){
+      resultBox.textContent='';
+      resultBox.classList.add('hidden');
+      return;
+    }
+    if(mode==='ok')   resultBox.classList.add('status-ok');
+    if(mode==='bad')  resultBox.classList.add('status-bad');
+    if(mode==='warn') resultBox.classList.add('status-warn');
+    resultBox.textContent = message;
+  }
+
   function checkStatus(){
     const name=nameSelect.value;
-    if(!name){
-      resultBox.style.display='none';
-      resultBox.textContent='';
-      return;
-    }
+    if(!name){ setResult('', 'hide'); return; }
     const index=data.indexOf(name);
-    if(index===-1){ // กัน error
-      resultBox.style.display='none';
-      resultBox.textContent='';
-      return;
-    }
+    if(index===-1){ setResult('', 'hide'); return; }
     if(needFix.includes(index)){
-      resultBox.textContent="❌ ติด มผ. แก้ด้วย!";
-      resultBox.style.borderColor="red";
+      setResult("❌ ติด มผ. แก้ด้วย!", 'bad');
     }else{
-      resultBox.textContent="✅ ผ่าน มผ. ทำดีต่อไป!";
-      resultBox.style.borderColor="green";
+      setResult("✅ ผ่าน มผ. ทำดีต่อไป!", 'ok');
     }
-    resultBox.style.display='block';
   }
 
   // เลือก index และเลื่อนโฟกัส
   function selectIndex(idx){
     if(idx<0 || idx>=data.length) {
-      resultBox.textContent = "⚠️ ไม่พบชื่อที่ใกล้เคียง กรุณาลองพิมพ์ใหม่";
-      resultBox.style.borderColor = "#f59e0b";
-      resultBox.style.display = "block";
+      setResult("⚠️ ไม่พบชื่อที่ใกล้เคียง กรุณาลองพิมพ์ใหม่", 'warn');
       return;
     }
     nameSelect.value=data[idx];
@@ -134,18 +138,18 @@ function initIndexPage(){
     nameSelect.dispatchEvent(new Event('change',{bubbles:true}));
     nameSelect.focus({preventScroll:true});
     nameSelect.scrollIntoView({behavior:'smooth', block:'center'});
-    setTimeout(()=>{ if(resultBox && resultBox.style.display!=='none'){ resultBox.scrollIntoView({behavior:'smooth', block:'center'});} },150);
+    setTimeout(()=>{ if(!resultBox.classList.contains('hidden')){ resultBox.scrollIntoView({behavior:'smooth', block:'center'});} },150);
   }
 
-  // ทำงานค้นหา
+  // ทำงานค้นหา (ใช้ class .shake แทนการตั้ง transform ด้วย style)
   function runSearch(){
     if(!searchInput) return;
     const q=searchInput.value.trim();
     if(q.length<2){
-      searchInput.style.transition='transform .08s';
-      searchInput.style.transform='translateX(2px)';
-      setTimeout(()=> (searchInput.style.transform='translateX(-2px)'),80);
-      setTimeout(()=> (searchInput.style.transform='none'),160);
+      searchInput.classList.remove('shake'); // รีเซ็ตเพื่อให้อนิเมชันเล่นใหม่
+      // trigger reflow เล็กน้อย
+      void searchInput.offsetWidth;
+      searchInput.classList.add('shake');
       searchInput.focus(); return;
     }
     const idx=findBestIndex(q);
@@ -158,16 +162,14 @@ function initIndexPage(){
   // ผูก change เพื่อคำนวณสถานะ
   nameSelect.addEventListener('change', checkStatus);
 
-  // RESET ครบถ้วน (ผูกครั้งเดียว)
+  // RESET ครบถ้วน
   if(resetBtn){
     resetBtn.addEventListener('click', ()=>{
       if(searchInput) searchInput.value='';
       nameSelect.classList.remove('is-matched');
       nameSelect.selectedIndex=0;
       nameSelect.dispatchEvent(new Event('change',{bubbles:true}));
-      resultBox.textContent='';
-      resultBox.style.display='none';
-      resultBox.removeAttribute('data-status');
+      setResult('', 'hide');
       window.scrollTo({top:0, behavior:'smooth'});
     });
   }
@@ -183,7 +185,11 @@ function initContactPage(){
   // whitelist ปุ่ม
   const allow = new Set(['ig','fb','line']);
 
-  // ระบุไฟล์รูป QR (ไฟล์ภายใน)
+  // ✅ วาง URL https ภายนอกได้เลย (ตัวอย่างอยู่ในคอมเมนต์)
+  // เช่น:
+  //   ig:   'https://i.imgur.com/xxxxxx.png',
+  //   fb:   'https://cdn.example.com/qr/fb.png',
+  //   line: 'https://images.example.org/qr-line.svg',
   const qrUrls = {
     ig:   '/assets/qr-instagram.png',
     fb:   '/assets/qr-facebook.png',
@@ -192,12 +198,23 @@ function initContactPage(){
 
   let current='ig';
 
+  // อนุญาตเฉพาะ https: หรือรูปภายในโดเมนเดียวกัน
+  function safeImageUrl(url){
+    try {
+      const u = new URL(url, window.location.origin);
+      if (u.origin === window.location.origin) return u.href;
+      if (u.protocol === 'https:') return u.href;
+    } catch(e){}
+    return null; // ไม่ผ่าน
+  }
+
   function setActive(platform){
     if(!allow.has(platform)) return;
-    const url = qrUrls[platform];
-    if(!url) return;
+    const raw = qrUrls[platform];
+    const safe = safeImageUrl(raw);
+    if(!safe) return;
 
-    qrImg.src = url;
+    qrImg.src = safe;
     qrImg.alt = `QR Code ของผู้ดูแล (${platform.toUpperCase()})`;
 
     if(platform==='ig')   caption.textContent='สแกนเพื่อเริ่มแชท — Instagram';
@@ -222,7 +239,6 @@ function initContactPage(){
 
 /* ---------- บูตระบบ ---------- */
 domReady(()=>{
-  // เรียกสอง init (แต่แต่ละตัวจะเช็คเองว่าหน้าตรงไหม)
   initIndexPage();
   initContactPage();
 });

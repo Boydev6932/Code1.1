@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KNW Check</title>
 
-  <!-- ✅ CSP เข้ม: โหลดได้เฉพาะจากโดเมนตัวเอง -->
+  <!-- ✅ CSP เข้มเหมือนเดิม แต่เปิดให้โหลด "รูป" จากภายนอกได้ผ่าน HTTPS -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self';
     style-src 'self';
-    img-src 'self' data:;
+    img-src 'self' https: data:;
     connect-src 'self';
     font-src 'self';
     object-src 'none';
@@ -40,7 +40,7 @@
 </head>
 <body>
   <div class="overlay">
-    <!-- โลโก้ -->
+    <!-- โลโก้ (จะใช้ไฟล์ในเครื่อง หรือเปลี่ยนเป็นลิงก์ https ภายนอกก็ได้) -->
     <div class="logos" aria-hidden="false">
       <img src="/assets/school-logo.png" alt="โลโก้ แก่นนครวิทยาลัย" width="60" height="60" loading="lazy">
       <img src="/assets/rotc-logo.png" alt="โลโก้ ROTC" width="50" height="70" loading="lazy">
@@ -71,7 +71,7 @@
       <!-- รายชื่อจะถูกเพิ่มด้วย script.js -->
     </select>
 
-    <div id="result" role="status" aria-live="polite"></div>
+    <div id="result" class="hidden" role="status" aria-live="polite"></div>
 
     <!-- ปุ่มติดต่อผู้ดูแลระบบ -->
     <div class="contact-wrap">
