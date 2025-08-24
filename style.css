@@ -1,0 +1,127 @@
+/* ===== Base ===== */
+body {
+  font-family: 'Tahoma', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: url('/assets/bg.jpg') no-repeat center center fixed;
+  background-size: cover;
+  color: white;
+  text-align: center;
+}
+.overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 40px;
+  min-height: 100vh;
+}
+.logos {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+h2 { margin-bottom: 20px; }
+label { font-weight: bold; }
+
+select {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  width: 250px;
+  margin: 10px;
+}
+#result {
+  display: none;
+  margin-top: 20px;
+  padding: 15px 30px;
+  background-color: white;
+  border-radius: 50px;
+  border: 3px solid #ccc;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  color: black;
+}
+
+/* ===== Contact Admin Button ===== */
+.contact-wrap { margin-top: 18px; }
+.contact-link {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background-color: #e1306c;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  transition: transform .12s ease, opacity .12s ease;
+}
+.contact-link:hover, .contact-link:focus {
+  transform: translateY(-2px);
+  opacity: 0.95;
+  outline: none;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+}
+
+/* Mobile */
+@media (max-width: 420px) {
+  select { width: 90%; }
+  .contact-link { width: 90%; display: inline-block; text-align:center; }
+}
+
+/* ===== QR Section (Contact Admin) ===== */
+.contact-main .card { background: rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 6px 14px rgba(0,0,0,0.25); transition: transform 0.25s ease; }
+.contact-main .card:hover { transform: translateY(-4px); }
+.accent-ig { border-left: 5px solid #E1306C; }
+.accent-fb { border-left: 5px solid #1877F2; }
+.accent-line { border-left: 5px solid #00B900; }
+
+.qr-display { margin-top: 24px; text-align: center; }
+.qr-img { border-radius: 20px; background: #fff; padding: 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.35); transition: transform 0.25s ease; }
+.qr-img:hover { transform: scale(1.05); }
+.qr-caption { margin-top: 12px; font-weight: 800; letter-spacing: .2px; font-size: 1rem; }
+.qr-hint-block { margin-top: 8px; font-size: 0.85rem; opacity: 0.9; }
+
+.card .btn { cursor: pointer; padding: 10px 16px; border-radius: 9999px; border: 2px solid transparent; font-weight: 700; }
+.card .btn-ghost { background: #6b7280; color: #fff; border: 2px solid #9ca3af; transition: background-color .2s, border-color .2s, transform .02s; }
+.card .btn-ghost:hover { background: #636a74; border-color: #8b95a1; }
+.card .btn-ghost.active { background: linear-gradient(135deg, #4f46e5, #06b6d4); border-color: transparent; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.25); }
+
+/* ===== Search controls ===== */
+.search-controls { margin: 8px 0 6px; display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: center; }
+#name-search {
+  padding: 10px 12px; width: 260px; max-width: 90vw;
+  border-radius: 10px; border: 1.5px solid #9ca3af;
+  background: rgba(255,255,255,0.95); color: #111; font-size: 16px; outline: none;
+  transition: box-shadow .2s, border-color .2s;
+}
+#name-search:focus-visible { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.25); }
+.search-button {
+  padding: 10px 16px; border-radius: 10px; font-weight: 800; border: 2px solid transparent; cursor: pointer;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4); color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: transform .12s ease, box-shadow .2s ease, opacity .12s ease;
+}
+.search-button:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(0,0,0,0.25); }
+.search-help { opacity: .9; margin: 4px 0 8px; font-size: .9rem; }
+
+/* ไฮไลต์ select เมื่อ “จับคู่จากการค้นหา” */
+select.is-matched { background: #6b7280; color: #fff; border: 2px solid #9ca3af; }
+#name option:checked { background: #6b7280; color: #fff; }
+
+/* RESET */
+.reset-wrap { margin-top: 15px; text-align: center; }
+.reset-button { padding: 10px 16px; border-radius: 10px; font-weight: 800; border: 0; cursor: pointer; }
+
+/* ปุ่มกลับ */
+.contact-footer { margin-top: 24px; text-align: center; }
+.back-home {
+  padding: 12px 20px; border-radius: 12px; font-weight: 700; text-decoration: none;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  transition: all 0.25s ease;
+}
+.back-home:hover { transform: translateY(-2px); opacity: 0.95; }
