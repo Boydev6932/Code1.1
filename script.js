@@ -4,7 +4,7 @@
    ✅ ไม่เซ็ต style ตรง ๆ เพื่อเลี่ยง inline-style; ใช้ class แทน
    ======================= */
 
-/* ---------- รายชื่อ (คงของเดิม) ---------- */
+/* ---------- รายชื่อ (ฐานข้อมูล) ---------- */
 const data = [
   "กบิลพัสดุ์​ แสงชัย","แทนคุณ จันงาม","สุรบดี ทองสุก","นราวิชญ์ ไชยหันขวา",
   "จิรัชยานันท์ แข็งขยัน","อภิชา เพียชิน","ญาณาธ ธนชิตชัยกุล","ทิวากร ฉัตรานุฉัตร",
@@ -105,9 +105,7 @@ function initIndexPage(){
   function setResult(message, mode){ // mode: ok|bad|warn|hide
     resultBox.classList.remove('hidden','status-ok','status-bad','status-warn');
     if(mode==='hide'){
-      resultBox.textContent='';
-      resultBox.classList.add('hidden');
-      return;
+      resultBox.textContent=''; resultBox.classList.add('hidden'); return;
     }
     if(mode==='ok')   resultBox.classList.add('status-ok');
     if(mode==='bad')  resultBox.classList.add('status-bad');
@@ -146,10 +144,7 @@ function initIndexPage(){
     if(!searchInput) return;
     const q=searchInput.value.trim();
     if(q.length<2){
-      searchInput.classList.remove('shake'); // รีเซ็ตเพื่อให้อนิเมชันเล่นใหม่
-      // trigger reflow เล็กน้อย
-      void searchInput.offsetWidth;
-      searchInput.classList.add('shake');
+      searchInput.classList.remove('shake'); void searchInput.offsetWidth; searchInput.classList.add('shake');
       searchInput.focus(); return;
     }
     const idx=findBestIndex(q);
@@ -185,7 +180,7 @@ function initContactPage(){
   // whitelist ปุ่ม
   const allow = new Set(['ig','fb','line']);
 
-  // ✅ วาง URL https ภายนอกได้เลย (ตัวอย่างอยู่ในคอมเมนต์)
+  // ✅ ใส่ URL https ภายนอกได้ (ตัวอย่างด้านล่างคอมเมนต์)
   // เช่น:
   //   ig:   'https://i.imgur.com/xxxxxx.png',
   //   fb:   'https://cdn.example.com/qr/fb.png',
@@ -198,7 +193,7 @@ function initContactPage(){
 
   let current='ig';
 
-  // อนุญาตเฉพาะ https: หรือรูปภายในโดเมนเดียวกัน
+  // อนุญาตเฉพาะ https: หรือรูปภายในโดเมนเดียวกัน (กันโค้ดแปลก ๆ)
   function safeImageUrl(url){
     try {
       const u = new URL(url, window.location.origin);
@@ -221,7 +216,11 @@ function initContactPage(){
     if(platform==='fb')   caption.textContent='สแกนเพื่อเริ่มแชท — Facebook';
     if(platform==='line') caption.textContent='สแกนเพื่อเริ่มแชท — LINE';
 
-    buttons.forEach(b => b.classList.toggle('active', b.getAttribute('data-show-qr')===platform));
+    buttons.forEach(b => {
+      const active = b.getAttribute('data-show-qr')===platform;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-pressed', String(active));
+    });
     current=platform;
   }
 
