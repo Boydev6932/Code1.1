@@ -179,11 +179,11 @@ function initContactPage(){
   const allow = new Set(['ig','fb','line']);
 
   // สามารถใส่ URL https ภายนอกได้
-  const qrUrls = {
-    ig:   '/assets/qr-instagram.png',
-    fb:   '/assets/qr-facebook.png',
-    line: '/assets/qr-line.png'
-  };
+const qrUrls = {
+  ig:   './assets/qr-instagram.png',
+  fb:   './assets/qr-facebook.png',
+  line: './assets/qr-line.png'
+};
 
   let current='ig';
 
