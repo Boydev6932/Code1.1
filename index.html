@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KNW Check</title>
 
-  <!-- CSP เข้ม แต่อนุญาตภาพจากภายนอกแบบ HTTPS และ data URI -->
+  <!-- CSP: เข้มงวด แต่ "อนุญาตรูปภาพจากทุกที่" ตามที่ขอ -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self';
     style-src 'self';
-    img-src 'self' https: data:;
+    img-src * data: blob:;
     connect-src 'self';
     font-src 'self';
     object-src 'none';
@@ -20,6 +20,7 @@
     upgrade-insecure-requests;
     block-all-mixed-content;
   ">
+
   <!-- ลดการส่ง referrer -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
@@ -37,13 +38,12 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+  <!-- พื้นหลังเลื่อนช้า ๆ ทำใน CSS (ไม่ต้องวางรูปพื้นหลังเองก็ได้ ใช้ pattern เทา) -->
   <div class="overlay">
-    <!-- โลโก้ (อนุญาตรูปภายนอกผ่าน HTTPS แล้ว) -->
     <div class="logos" aria-hidden="false">
-      <img src="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2-Logo-PNG-color.png?resize=180%2C180&ssl=1" alt="โลโก้ แก่นนครวิทยาลัย" width="60" height="60" loading="lazy">
+      <img src="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2-Logo-PNG-color.png?resize=947%2C949&ssl=1" alt="โลโก้ แก่นนครวิทยาลัย" width="60" height="60" loading="lazy">
       <img src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t1.15752-9/532944842_2000679387359224_5786569609575666025_n.png?stp=dst-png_p480x480&_nc_cat=109&ccb=1-7&_nc_sid=0024fc&_nc_ohc=v5YPLokYHLEQ7kNvwGUnBmB&_nc_oc=AdllnaWrPFxb67tVjOmFUBpsKjOZsIqeOTMpRKLRNUuq8__0hziIBIY_rbfqGjR852OvDijMaULop2WPllm4LXhF&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fkkc3-1.fna&oh=03_Q7cD3AG6xNTvpAz-202BoJuGkZnlG0EQawqqzq5bVeEQ_Upchg&oe=68D411A7"
-           alt="โลโก้ ROTC (CDN ภายนอก)"
-           width="50" height="70" loading="lazy">
+           alt="โลโก้ ROTC (CDN ภายนอก)" width="50" height="70" loading="lazy">
     </div>
 
     <h2>🟢 เช็คสถานะ มผ. รด. แก่นนครวิทยาลัย 🟠 💂‍♂️</h2>

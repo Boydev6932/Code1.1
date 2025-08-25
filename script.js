@@ -1,7 +1,7 @@
 /* =======================
    script.js — ใช้ร่วม 2 หน้า (index + contact-admin)
    ปลอดภัย: ไม่มี innerHTML, ไม่มี eval, ไม่มี inline script
-   ✅ ไม่เซ็ต style ตรง ๆ เพื่อเลี่ยง inline-style; ใช้ class แทน
+   ✅ ใช้ class แทน inline-style ตาม CSP
    ======================= */
 
 /* ---------- รายชื่อ (ฐานข้อมูล) ---------- */
@@ -101,12 +101,10 @@ function initIndexPage(){
     return bestIdx;
   }
 
-  // แสดงผลสถานะ (ใช้ class แทนการแก้ style ตรง ๆ เพื่อให้ CSP ไม่บล็อก)
+  // แสดงผลสถานะ (ใช้ class แทนปรับ style ตรง ๆ)
   function setResult(message, mode){ // mode: ok|bad|warn|hide
     resultBox.classList.remove('hidden','status-ok','status-bad','status-warn');
-    if(mode==='hide'){
-      resultBox.textContent=''; resultBox.classList.add('hidden'); return;
-    }
+    if(mode==='hide'){ resultBox.textContent=''; resultBox.classList.add('hidden'); return; }
     if(mode==='ok')   resultBox.classList.add('status-ok');
     if(mode==='bad')  resultBox.classList.add('status-bad');
     if(mode==='warn') resultBox.classList.add('status-warn');
@@ -139,7 +137,7 @@ function initIndexPage(){
     setTimeout(()=>{ if(!resultBox.classList.contains('hidden')){ resultBox.scrollIntoView({behavior:'smooth', block:'center'});} },150);
   }
 
-  // ทำงานค้นหา (ใช้ class .shake แทนการตั้ง transform ด้วย style)
+  // ทำงานค้นหา (ใช้ class .shake)
   function runSearch(){
     if(!searchInput) return;
     const q=searchInput.value.trim();
@@ -180,11 +178,7 @@ function initContactPage(){
   // whitelist ปุ่ม
   const allow = new Set(['ig','fb','line']);
 
-  // ✅ ใส่ URL https ภายนอกได้ (ตัวอย่างด้านล่างคอมเมนต์)
-  // เช่น:
-  //   ig:   'https://i.imgur.com/xxxxxx.png',
-  //   fb:   'https://cdn.example.com/qr/fb.png',
-  //   line: 'https://images.example.org/qr-line.svg',
+  // สามารถใส่ URL https ภายนอกได้
   const qrUrls = {
     ig:   '/assets/qr-instagram.png',
     fb:   '/assets/qr-facebook.png',
@@ -193,7 +187,7 @@ function initContactPage(){
 
   let current='ig';
 
-  // อนุญาตเฉพาะ https: หรือรูปภายในโดเมนเดียวกัน (กันโค้ดแปลก ๆ)
+  // อนุญาตเฉพาะ https: หรือรูปภายในโดเมนเดียวกัน
   function safeImageUrl(url){
     try {
       const u = new URL(url, window.location.origin);
