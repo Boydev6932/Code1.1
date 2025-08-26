@@ -1,80 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KNW Check</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>KNW Check — เช็คสถานะ มผ. รด.</title>
 
-  <!-- CSP: เข้มงวด แต่ "อนุญาตรูปภาพจากทุกที่" ตามที่ขอ -->
-  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self';
-    script-src 'self';
-    style-src 'self';
-    img-src * data: blob:;
-    connect-src 'self';
-    font-src 'self';
-    object-src 'none';
-    base-uri 'none';
-    frame-ancestors 'none';
-    form-action 'self';
-    upgrade-insecure-requests;
-    block-all-mixed-content;
-  ">
-
-  <!-- ลดการส่ง referrer -->
+  <!-- CSP: อนุญาตภาพจาก https: และ data uri -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-
-  <!-- SEO / Social -->
   <meta name="description" content="ระบบเช็คสถานะ มผ. รด. แก่นนครวิทยาลัย ออนไลน์">
-  <meta name="keywords" content="เช็คสถานะ รด., แก่นนครวิทยาลัย, มผ., ROTC">
-  <meta name="author" content="KNW">
-  <meta property="og:title" content="เช็คสถานะ มผ. รด. แก่นนครวิทยาลัย">
-  <meta property="og:description" content="เช็คสถานะการส่งเอกสาร มผ. รด. ออนไลน์ จากทุกที่ ทุกเวลา">
-  <meta property="og:image" content="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2-Logo-PNG-color.png?resize=947%2C949&ssl=1">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="/">
 
-  <link rel="icon" href="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2-Logo-PNG-color.png?resize=64%2C64&ssl=1" type="image/png">
-<link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-  <!-- พื้นหลังเลื่อนช้า ๆ ทำใน CSS (ไม่ต้องวางรูปพื้นหลังเองก็ได้ ใช้ pattern เทา) -->
+<body class="index">
+  <!-- Background slideshow: 4 ภาพ (assets/bg1.png ... bg4.png) -->
+  <div class="bg-slideshow" aria-hidden="true">
+    <img class="slide" src="assets/bg1.png" alt="">
+    <img class="slide" src="assets/bg2.png" alt="">
+    <img class="slide" src="assets/bg3.png" alt="">
+    <img class="slide" src="assets/bg4.png" alt="">
+  </div>
+
   <div class="overlay">
-    <div class="logos" aria-hidden="false">
-      <img src="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2-Logo-PNG-color.png?resize=947%2C949&ssl=1" alt="โลโก้ แก่นนครวิทยาลัย" width="60" height="60" loading="lazy">
-      <img src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t1.15752-9/532944842_2000679387359224_5786569609575666025_n.png?stp=dst-png_p480x480&_nc_cat=109&ccb=1-7&_nc_sid=0024fc&_nc_ohc=v5YPLokYHLEQ7kNvwGUnBmB&_nc_oc=AdllnaWrPFxb67tVjOmFUBpsKjOZsIqeOTMpRKLRNUuq8__0hziIBIY_rbfqGjR852OvDijMaULop2WPllm4LXhF&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fkkc3-1.fna&oh=03_Q7cD3AG6xNTvpAz-202BoJuGkZnlG0EQawqqzq5bVeEQ_Upchg&oe=68D411A7"
-           alt="โลโก้ ROTC (CDN ภายนอก)" width="50" height="70" loading="lazy">
-    </div>
+    <div class="container">
+      <div class="logos" aria-hidden="false">
+        <img src="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2-Logo-PNG-color.png?resize=947%2C949&ssl=1"
+             alt="โลโก้ แก่นนครวิทยาลัย" width="60" height="60" loading="lazy" decoding="async">
+        <img src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t1.15752-9/532944842_2000679387359224_5786569609575666025_n.png"
+             alt="โลโก้ ROTC" width="50" height="70" loading="lazy" decoding="async">
+      </div>
 
-    <h2>🟢 เช็คสถานะ มผ. รด. แก่นนครวิทยาลัย 🟠 💂‍♂️</h2>
+      <h1 class="main-title">🟢 เช็คสถานะ มผ. รด. — แก่นนครวิทยาลัย</h1>
 
-    <label for="name-search">ค้นหาชื่อตัวเอง❗:</label>
-    <div class="search-controls" role="search">
-      <input id="name-search" type="search" inputmode="search"
-             placeholder="พิมพ์ชื่อหรือสกุล (เช่น ธีร์จุฑา หรือ ก้อนแก้ว)"
-             aria-label="ค้นหาชื่อหรือนามสกุล" autocomplete="off" />
-      <button id="search-btn" class="search-button" aria-label="ค้นหาชื่อที่ใกล้เคียง">ค้นหา</button>
-    </div>
-    <p class="search-help">พิมพ์อย่างน้อย 2 ตัวอักษร ค้นหาได้ทั้งชื่อ/นามสกุล</p>
+      <label for="name-search" class="sr-only">ค้นหาชื่อ</label>
+      <div class="search-controls" role="search" aria-label="ค้นหาชื่อ">
+        <input id="name-search" type="search" inputmode="search"
+               placeholder="พิมพ์ชื่อหรือสกุล (เช่น ธีร์จุฑา หรือ ก้อนแก้ว)" aria-label="ค้นหาชื่อ" autocomplete="off">
+        <button id="search-btn" class="search-button" aria-label="ค้นหา">ค้นหา</button>
+      </div>
 
-    <select id="name" aria-label="เลือกชื่อ">
-      <option value="">-- เลือกชื่อ --</option>
-      <!-- รายชื่อจะถูกเติมโดย script.js -->
-    </select>
+      <p class="search-help">พิมพ์อย่างน้อย 2 ตัวอักษร — ค้นหาได้ทั้งชื่อ/นามสกุล</p>
 
-    <div id="result" class="hidden" role="status" aria-live="polite"></div>
+      <select id="name" aria-label="เลือกชื่อ">
+        <option value="">-- เลือกชื่อ --</option>
+      </select>
 
-    <div class="contact-wrap">
-      <a id="contact-admin" class="contact-link" href="./contact-admin.html" aria-label="ไปที่หน้าติดต่อผู้ดูแลระบบ">
-        ติดต่อผู้ดูแลระบบ ❗
-      </a>
-    </div>
+      <div id="result" class="hidden" role="status" aria-live="polite"></div>
 
-    <div class="reset-wrap">
-      <button id="reset-btn" class="reset-button" aria-label="ล้างข้อมูลทั้งหมด">🔄 RESET</button>
+      <div class="actions-row" style="text-align:center; margin-top:14px;">
+        <a id="contact-admin" class="contact-link" href="./contact-admin.html" aria-label="ติดต่อผู้ดูแลระบบ">ติดต่อผู้ดูแลระบบ</a>
+        <button id="reset-btn" class="reset-button" aria-label="ล้างการค้นหา">🔄 RESET</button>
+      </div>
+
+      <footer class="site-footer">
+        <small>© <span id="year"></span> KNW Check</small>
+      </footer>
     </div>
   </div>
 
-  <script src="./js/script.js" defer></script>
+  <script src="js/script.js"></script>
 </body>
 </html>
