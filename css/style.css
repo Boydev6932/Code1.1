@@ -1,4 +1,4 @@
-/* ========================================================================== 
+/* ==========================================================================
    css/style.css  — KNW Check (index + contact-admin)
    Organized, annotated, responsive, accessible.
    ========================================================================== */
@@ -14,9 +14,13 @@ html, body { height: 100%; margin: 0; padding: 0; }
   --muted-brd: #9ca3af;
   --ring: rgba(99,102,241,.45);
 
+  /* platform palettes */
   --ig1:#f9a8d4; --ig2:#818cf8;
   --fb1:#93c5fd; --fb2:#2563eb;
   --ln1:#a7f3d0; --ln2:#10b981;
+  --igG1:#f58529; --igG2:#feda77; --igG3:#dd2a7b; --igG4:#8134af; --igG5:#515bd4;
+  --fb:#1877f2;
+  --line:#06c755;
 
   --accent1:#4f46e5; --accent2:#06b6d4;
   --ok:#10b981; --bad:#ef4444; --warn:#f59e0b;
@@ -42,7 +46,6 @@ body {
 .small{ font-size:0.9rem; color:var(--muted); }
 
 /* ========== BG SLIDESHOW (index) ========== */
-/* Use 4 images that slowly loop, translate upward slightly for motion */
 .bg-slideshow{ position:fixed; inset:0; z-index:-3; overflow:hidden; pointer-events:none; }
 .bg-slideshow .slide{
   position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
@@ -66,7 +69,7 @@ body {
   100% { opacity: 0; transform: translateY(-4%) scale(1.03); }
 }
 
-/* If background images fail to load, show soft gradient */
+/* fallback bg */
 body.index:not(.has-bg-images) { background: linear-gradient(180deg,#f6f7fb,#eef2f7); }
 
 /* respect reduced motion */
@@ -94,11 +97,13 @@ body.contact .overlay {
 .logos{ display:flex; gap:10px; justify-content:center; align-items:center; margin-bottom:12px; }
 .main-title { font-size: clamp(20px, 3.2vw, 28px); margin: 6px 0 14px; text-align:center; font-weight:800; }
 
-/* ========== INDEX SEARCH UI ========== */
-.search-controls{ margin:8px 0 6px; display:inline-flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center; }
+/* ========== INDEX SEARCH UI (centered exactly) ========== */
+body.index .container{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+
+.search-controls{ margin:8px 0 6px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center; }
 #name-search{
   padding:12px 14px;
-  width:420px; max-width:90vw;
+  width:520px; max-width:92vw;
   border-radius:12px;
   border:1.5px solid var(--muted-brd);
   background:#fff; color:#111;
@@ -116,7 +121,7 @@ body.contact .overlay {
 /* select and result */
 select{
   padding:12px; border-radius:12px; border:1.5px solid var(--muted-brd);
-  width:320px; margin:14px auto; display:block; background:#fff; color:#111;
+  width:340px; margin:14px auto 0; display:block; background:#fff; color:#111;
   box-shadow: 0 8px 18px rgba(12,16,24,0.04);
 }
 #result{
@@ -129,15 +134,17 @@ select{
 .status-bad{ border-color:var(--bad) !important; box-shadow: 0 6px 18px rgba(239,68,68,0.08); }
 .status-warn{ border-color:var(--warn) !important; box-shadow: 0 6px 18px rgba(245,158,11,0.08); }
 
-/* contact link on index */
+/* contact & reset centered UNDER the select */
+.actions-row{
+  display:flex; justify-content:center; align-items:center;
+  gap:12px; margin-top:14px;
+}
 .contact-link{
   display:inline-block; padding:10px 18px; border-radius:12px;
   background: linear-gradient(135deg,#e1306c,#ef5a8a);
   color:#fff; font-weight:800; text-decoration:none; box-shadow:0 8px 28px rgba(225,44,101,0.12);
-  margin-top:12px;
 }
 .reset-button{
-  margin-left:12px;
   padding:8px 14px; border-radius:10px; border:1px solid #d1d5db; background:#fff;
   box-shadow:0 6px 14px rgba(12,16,24,0.04);
 }
@@ -152,7 +159,7 @@ select{
 .card.accent-line::before{ background:linear-gradient(90deg,var(--ln1),var(--ln2)); }
 .contact-main .card::before{ display:none; }
 
-/* ========== CONTACT-ADMIN STYLES (luxury) ========== */
+/* ========== CONTACT-ADMIN (luxury) ========== */
 .contact-card{
   background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
   border-radius:20px; padding:22px; text-align:center; box-shadow:0 18px 48px rgba(2,6,23,0.45);
@@ -166,28 +173,69 @@ select{
 .card-actions{ display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
 .card .btn-ghost{
   background: rgba(255,255,255,0.06); color:#fff; border:2px solid rgba(255,255,255,0.12);
-  padding:10px 16px; border-radius:9999px; font-weight:800; cursor:pointer; transition: transform .12s;
+  padding:10px 16px; border-radius:9999px; font-weight:800; cursor:pointer; transition: transform .12s, background .2s, border .2s;
   box-shadow: 0 6px 18px rgba(0,0,0,0.18);
 }
 .card .btn-ghost:active{ transform: translateY(1px) scale(.997); }
 .card .btn-ghost.active{ background: linear-gradient(135deg,var(--accent1),var(--accent2)); border-color:transparent; color:#fff; box-shadow:0 12px 28px rgba(79,70,229,0.2); animation:btn-pulse 1.6s infinite; }
 @keyframes btn-pulse{ 0%{ transform:scale(1) } 50%{ transform:scale(1.02) } 100%{ transform:scale(1) } }
 
-/* qr display - show in center, big and elegant */
-.qr-display{ margin-top:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
+/* === QR IMAGE with platform-colored border === */
+.qr-display{ margin-top:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
+
+/* gradient/single-color frame wrapper */
+.qr-wrap{ display:inline-block; padding:6px; border-radius:24px; }
+.qr-wrap.ig{ background: linear-gradient(135deg,var(--igG1),var(--igG2),var(--igG3),var(--igG4),var(--igG5)); }
+.qr-wrap.fb{ background: linear-gradient(135deg,var(--fb),#4e9bff); }
+.qr-wrap.line{ background: linear-gradient(135deg,var(--line), #38ef7d); }
+
 .contact-main .qr-img{
   width:min(360px,86vw); height:auto; border-radius:18px; background:#fff; padding:14px;
   box-shadow: 0 18px 44px rgba(0,0,0,0.45); object-fit:contain; display:block;
   border: 1px solid rgba(255,255,255,0.06);
 }
-.qr-caption{ margin-top:8px; font-weight:800; font-size:1.02rem; color:inherit; letter-spacing:0.2px; }
-.qr-hint-block{ margin-top:6px; font-size:.92rem; opacity:.95; color:#fff; }
+
+.qr-caption{ margin-top:6px; font-weight:800; font-size:1.02rem; color:#fff; letter-spacing:0.2px; }
+.qr-hint-block{ margin-top:0px; font-size:.92rem; opacity:.95; color:#fff; }
+
+/* help text under QR (as requested) */
+.qr-extra{
+  margin-top:10px; padding:10px 14px; border-radius:14px;
+  background: rgba(255,255,255,0.08); color:#fff; font-weight:700;
+  box-shadow: 0 10px 28px rgba(0,0,0,.18);
+}
+.qr-extra .k{ opacity:.9; }
+
+/* back-home — more visible with playful effect */
+.contact-footer{ margin-top:16px; }
+.back-home{
+  display:inline-flex; align-items:center; gap:8px;
+  text-decoration:none; font-weight:900; letter-spacing:.2px;
+  padding:10px 16px; border-radius:9999px;
+  color:#0b1020; background:#fff;
+  box-shadow:0 16px 40px rgba(0,0,0,.25), inset 0 0 0 2px rgba(255,255,255,.4);
+  position:relative; overflow:hidden;
+}
+.back-home::before{
+  content:""; position:absolute; inset:0; background:linear-gradient(135deg,var(--accent1),var(--accent2));
+  opacity:.12; transition:opacity .25s;
+}
+.back-home::after{
+  /* shine sweep */
+  content:""; position:absolute; top:0; left:-60%;
+  width:50%; height:100%; transform:skewX(-20deg);
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+  transition:left .8s ease;
+}
+.back-home:hover::before{ opacity:.18; }
+.back-home:hover::after{ left:120%; }
+.back-home span.ico{ display:inline-block; transform:translateX(0); transition:transform .2s; }
+.back-home:hover span.ico{ transform:translateX(-2px); }
 
 /* guide UI (small helper) */
 .qr-guide{ display:inline-flex; align-items:center; gap:10px; margin-left:8px; padding:6px 12px; border-radius:9999px; background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); }
 .guide-text{ font-weight:700; font-size:.92rem; color:#fff; display:block; }
 
-/* small icon animations */
 .arrow-pulse{ width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:18px solid var(--accent2); transform:rotate(-90deg); animation:arrow-nudge 1.3s infinite; }
 @keyframes arrow-nudge{ 0%,100%{ transform:translateX(0) rotate(-90deg);} 50%{ transform:translateX(4px) rotate(-90deg);} }
 .mouse-pointer{ width:18px;height:26px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='26' viewBox='0 0 18 26'%3E%3Cpath d='M2 1 L16 13 L10 13 L14 23 L11.5 24 L7.5 14 L2 18Z' fill='%23ffffff'/%3E%3C/svg%3E"); background-size:contain; background-repeat:no-repeat; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.25)); animation:mouse-peck 1.6s infinite; }

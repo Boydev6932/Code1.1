@@ -241,3 +241,68 @@ const needFix = [1,2,5,8,9,12,19,29,49,57,59,64,65,72,75,77,84,101,106,115,116,1
   });
 
 })();
+
+// js/script.js — minimal shared behaviors for index & contact pages
+
+(function () {
+  // year in footer
+  const y = document.getElementById('year');
+  if (y) y.textContent = new Date().getFullYear();
+
+  // ===== index behaviors =====
+  const nameInput = document.getElementById('name-search');
+  const resetBtn  = document.getElementById('reset-btn');
+  const resultBox = document.getElementById('result');
+  const nameSelect= document.getElementById('name');
+
+  // (ถ้ามีระบบค้นหาอยู่แล้ว ไฟล์นี้ไม่ไปยุ่ง logic เดิม เพียงแค่ reset UI)
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (nameInput) nameInput.value = '';
+      if (nameSelect) nameSelect.selectedIndex = 0;
+      if (resultBox) {
+        resultBox.classList.add('hidden');
+        resultBox.textContent = '';
+        resultBox.classList.remove('status-ok','status-bad','status-warn');
+      }
+      nameInput && nameInput.focus();
+    });
+  }
+
+  // ===== contact page: QR switching =====
+  const qrImg   = document.getElementById('contact-qr-img');
+  const qrWrap  = document.getElementById('qr-wrap');
+  const qrLabel = document.getElementById('qr-platform-label');
+
+  const map = {
+    ig   : { src: 'assets/qr-instagram.png', label: 'Instagram', wrapClass: 'ig' },
+    fb   : { src: 'assets/qr-facebook.png',  label: 'Facebook',  wrapClass: 'fb' },
+    line : { src: 'assets/qr-line.png',      label: 'LINE',      wrapClass: 'line' }
+  };
+
+  const toggleButtons = document.querySelectorAll('[data-show-qr]');
+  if (toggleButtons && toggleButtons.length) {
+    toggleButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // active style
+        toggleButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const key = btn.getAttribute('data-show-qr');
+        const conf = map[key];
+        if (!conf) return;
+
+        // swap image, label, frame class
+        if (qrImg) {
+          qrImg.src = conf.src;
+          qrImg.alt = `QR Code ของผู้ดูแล (${conf.label})`;
+        }
+        if (qrLabel) qrLabel.textContent = conf.label;
+        if (qrWrap) {
+          qrWrap.classList.remove('ig','fb','line');
+          qrWrap.classList.add(conf.wrapClass);
+        }
+      });
+    });
+  }
+})();

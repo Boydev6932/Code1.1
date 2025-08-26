@@ -25,30 +25,39 @@
           <h2 id="contact-heading" class="contact-heading">ช่องทางติดต่อผู้ดูแล</h2>
 
           <div class="card-actions" role="group" aria-label="เลือกแพลตฟอร์ม">
-            <button class="btn btn-ghost" data-show-qr="ig" aria-pressed="true">แสดง QR — Instagram</button>
+            <button class="btn btn-ghost active" data-show-qr="ig" aria-pressed="true">แสดง QR — Instagram</button>
             <button class="btn btn-ghost" data-show-qr="fb" aria-pressed="false">แสดง QR — Facebook</button>
             <button class="btn btn-ghost" data-show-qr="line" aria-pressed="false">แสดง QR — LINE</button>
           </div>
 
           <div class="qr-display">
-            <img id="contact-qr-img" class="qr-img" src="assets/qr-instagram.png" alt="QR Code ของผู้ดูแล (IG)" width="300" height="300" loading="lazy" decoding="async">
+            <!-- gradient frame wrapper with platform class -->
+            <div id="qr-wrap" class="qr-wrap ig">
+              <img id="contact-qr-img" class="qr-img" src="assets/qr-instagram.png" alt="QR Code ของผู้ดูแล (Instagram)" width="300" height="300" loading="lazy" decoding="async">
+            </div>
             <div class="qr-caption">สแกนเพื่อเริ่มแชท — <span id="qr-platform-label">Instagram</span></div>
             <div class="qr-hint-block muted-badge">สแกนด้วยกล้องมือถือเพื่อแอด/แชท</div>
+
+            <!-- ข้อความเพิ่มเติมที่ต้องมีตามคำสั่ง -->
+            <div class="qr-extra">
+              <div class="k">หากสแกนไม่ติด ให้พิมพ์ชื่อ IG ว่า <strong>_littleboy555</strong></div>
+              <div class="k">Facebook <strong>Kungbang Konkaew</strong></div>
+              <div class="k">Line id <strong>kungbang2435</strong></div>
+            </div>
           </div>
 
           <div class="contact-extra">
-            <p class="muted small">รายละเอียดเพิ่มเติม (แก้ข้อความได้ตามต้องการ)</p>
+            <p class="muted small">รายละเอียดเพิ่มเติม (ปรับแก้ได้):</p>
             <ul class="contact-list">
               <li><strong>ผู้ดูแล:</strong> ทีมเทคนิค KNW Check</li>
               <li><strong>เวลาทำการ:</strong> จันทร์–ศุกร์ 08:30–16:30</li>
-              <li><strong>หมายเหตุ:</strong> ถ้าต้องการให้ทีมช่วยแก้ไขข้อมูล ให้แนบหลักฐานแล้วติดต่อผ่านช่องทางด้านบน</li>
+              <li><strong>หมายเหตุ:</strong> หากต้องการให้ทีมช่วยแก้ไขข้อมูล กรุณาแนบหลักฐานและติดต่อผ่านช่องทางด้านบน</li>
             </ul>
           </div>
-
         </section>
 
         <div class="contact-footer">
-          <a class="back-home" href="./index.html">← ย้อนกลับหน้าหลัก</a>
+          <a class="back-home" href="./index.html"><span class="ico">←</span> ย้อนกลับหน้าหลัก</a>
         </div>
       </main>
 

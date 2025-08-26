@@ -13,13 +13,13 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="index">
-<!-- Background slideshow: 4 ภาพ -->
-<div class="bg-slideshow" aria-hidden="true">
-  <img class="slide" src="assets/bg1.png" alt="Background 1" loading="lazy" decoding="async">
-  <img class="slide" src="assets/bg2.png" alt="Background 2" loading="lazy" decoding="async">
-  <img class="slide" src="assets/bg3.png" alt="Background 3" loading="lazy" decoding="async">
-  <img class="slide" src="assets/bg4.png" alt="Background 4" loading="lazy" decoding="async">
-</div>
+  <!-- Background slideshow: 4 ภาพ -->
+  <div class="bg-slideshow" aria-hidden="true">
+    <img class="slide" src="assets/bg1.png" alt="Background 1" loading="lazy" decoding="async">
+    <img class="slide" src="assets/bg2.png" alt="Background 2" loading="lazy" decoding="async">
+    <img class="slide" src="assets/bg3.png" alt="Background 3" loading="lazy" decoding="async">
+    <img class="slide" src="assets/bg4.png" alt="Background 4" loading="lazy" decoding="async">
+  </div>
 
   <div class="overlay">
     <div class="container">
@@ -47,7 +47,8 @@
 
       <div id="result" class="hidden" role="status" aria-live="polite"></div>
 
-      <div class="actions-row" style="text-align:center; margin-top:14px;">
+      <!-- อยู่ตรงกลาง ใต้ select -->
+      <div class="actions-row">
         <a id="contact-admin" class="contact-link" href="./contact-admin.html" aria-label="ติดต่อผู้ดูแลระบบ">ติดต่อผู้ดูแลระบบ</a>
         <button id="reset-btn" class="reset-button" aria-label="ล้างการค้นหา">🔄 RESET</button>
       </div>
