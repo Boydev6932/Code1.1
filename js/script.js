@@ -306,3 +306,85 @@ const needFix = [1,2,5,8,9,12,19,29,49,57,59,64,65,72,75,77,84,101,106,115,116,1
     });
   }
 })();
+
+// js/script.js — QR toggle (robust, uses /assets/... absolute paths)
+document.addEventListener('DOMContentLoaded', function () {
+  // set year if element present
+  const y = document.getElementById('year');
+  if (y) y.textContent = new Date().getFullYear();
+
+  // map ของแพลตฟอร์ม (ใช้ path จาก /assets/)
+  const map = {
+    ig:   { src: '/assets/qr-instagram.png', label: 'Instagram', wrapClass: 'ig' },
+    fb:   { src: '/assets/qr-facebook.png',  label: 'Facebook',  wrapClass: 'fb' },
+    line: { src: '/assets/qr-line.png',      label: 'LINE',      wrapClass: 'line' }
+  };
+
+  // preload images (เร็วขึ้นและช่วยจับปัญหาภาพหาย)
+  Object.values(map).forEach(cfg => {
+    const im = new Image();
+    im.src = cfg.src;
+  });
+
+  // อ้างอิง DOM
+  const qrImg   = document.getElementById('contact-qr-img');
+  const qrWrap  = document.getElementById('qr-wrap');
+  const qrLabel = document.getElementById('qr-platform-label');
+  const fallback= document.getElementById('qr-fallback');
+  const toggleButtons = document.querySelectorAll('[data-show-qr]');
+
+  // ฟังก์ชันสลับ QR
+  function showQR(key) {
+    if (!map[key]) return;
+    const conf = map[key];
+
+    // ปรับปุ่ม active
+    toggleButtons.forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector('[data-show-qr="' + key + '"]');
+    if (btn) btn.classList.add('active');
+
+    // เปลี่ยน frame class
+    if (qrWrap) {
+      qrWrap.classList.remove('ig','fb','line');
+      qrWrap.classList.add(conf.wrapClass);
+    }
+
+    // แสดงภาพใหม่อย่างปลอดภัย
+    if (qrImg) {
+      // ซ่อน fallback ขณะโหลด
+      if (fallback) fallback.classList.add('hidden');
+
+      qrImg.style.display = 'block';
+      // set src ก่อน แล้ว handle onload/onerror
+      qrImg.onload = function () {
+        qrImg.style.display = 'block';
+        if (fallback) { fallback.classList.add('hidden'); fallback.setAttribute('aria-hidden','true'); }
+      };
+      qrImg.onerror = function () {
+        qrImg.style.display = 'none';
+        if (fallback) { fallback.classList.remove('hidden'); fallback.setAttribute('aria-hidden','false'); }
+      };
+      qrImg.src = conf.src;
+      if (qrLabel) qrLabel.textContent = conf.label;
+    }
+  }
+
+  // ผูก event ให้ปุ่มทุกปุ่ม
+  if (toggleButtons && toggleButtons.length) {
+    toggleButtons.forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        const key = btn.getAttribute('data-show-qr');
+        showQR(key);
+      });
+    });
+  }
+
+  // ตั้งค่าเริ่มต้น: ถ้ามีปุ่มที่ active อยู่ ให้ใช้ key นั้น
+  const activeBtn = document.querySelector('[data-show-qr].active') || document.querySelector('[data-show-qr="ig"]');
+  if (activeBtn) {
+    showQR(activeBtn.getAttribute('data-show-qr'));
+  } else {
+    // fallback defaults
+    showQR('ig');
+  }
+});
