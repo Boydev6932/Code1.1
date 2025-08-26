@@ -34,14 +34,14 @@
 <div class="qr-display" aria-live="polite">
   <!-- wrapper ที่มี class เปลี่ยนตาม platform (ig / fb / line) -->
   <div id="qr-wrap" class="qr-wrap ig" aria-hidden="false">
-    <!-- ใช้ path แบบ absolute (/assets/...) เพื่อความแน่นอน -->
-    <img id="contact-qr-img"
-         class="qr-img"
-         src="/assets/qr-instagram.png"
-         alt="QR Code ของผู้ดูแล (Instagram)"
-         width="300" height="300"
-         loading="lazy" decoding="async"
-         onerror="this.style.display='none'; document.getElementById('qr-fallback').classList.remove('hidden');">
+<!-- ใช้ relative path (assets/...) เป็นค่าเริ่มต้น เพื่อให้ทำงานทั้ง file:// และ http:// -->
+<img id="contact-qr-img"
+     class="qr-img"
+     src="assets/qr-instagram.png"
+     alt="QR Code ของผู้ดูแล (Instagram)"
+     width="300" height="300"
+     loading="lazy" decoding="async"
+     onerror="this.style.display='none'; document.getElementById('qr-fallback').classList.remove('hidden');">
   </div>
 
   <div class="qr-caption">สแกนเพื่อเริ่มแชท — <span id="qr-platform-label">Instagram</span></div>

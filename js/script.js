@@ -307,84 +307,103 @@ const needFix = [1,2,5,8,9,12,19,29,49,57,59,64,65,72,75,77,84,101,106,115,116,1
   }
 })();
 
-// js/script.js — QR toggle (robust, uses /assets/... absolute paths)
+// js/script.js — robust QR toggle: รองรับทั้ง file:// (direct open) และ http server
 document.addEventListener('DOMContentLoaded', function () {
   // set year if element present
   const y = document.getElementById('year');
   if (y) y.textContent = new Date().getFullYear();
 
-  // map ของแพลตฟอร์ม (ใช้ path จาก /assets/)
-  const map = {
-    ig:   { src: '/assets/qr-instagram.png', label: 'Instagram', wrapClass: 'ig' },
-    fb:   { src: '/assets/qr-facebook.png',  label: 'Facebook',  wrapClass: 'fb' },
-    line: { src: '/assets/qr-line.png',      label: 'LINE',      wrapClass: 'line' }
+  // detect base path:
+  // - ถ้าเปิดด้วย file:// ให้ใช้ './assets'
+  // - ถ้าใช้ http/https ให้ใช้ '/assets' (root) เพื่อความแน่นอนบน server
+  // แต่บาง deployment ต้องการ 'assets' (relative) — log ช่วย debug
+  let base;
+  if (location.protocol === 'file:') {
+    base = './assets';
+  } else {
+    // ถ้าหน้า html ถูก serve จาก sub-path ของเว็บ คุณอาจต้องเปลี่ยนเป็น relative:
+    // base = window.location.pathname.endsWith('/') ? window.location.pathname + 'assets' : '/assets';
+    // แต่โดยทั่วไปใช้ '/assets' จะชี้ไปที่ root domain
+    base = '/assets';
+  }
+
+  // ถ้าต้องการ fallback ให้ใช้ relative ถ้า file not found (try both)
+  const trySrc = (p) => {
+    return p;
   };
 
-  // preload images (เร็วขึ้นและช่วยจับปัญหาภาพหาย)
+  const map = {
+    ig:   { src: trySrc(base + '/qr-instagram.png'), label: 'Instagram', wrapClass: 'ig' },
+    fb:   { src: trySrc(base + '/qr-facebook.png'),  label: 'Facebook',  wrapClass: 'fb' },
+    line: { src: trySrc(base + '/qr-line.png'),      label: 'LINE',      wrapClass: 'line' }
+  };
+
+  // preload (ดีช่วยลด flash)
   Object.values(map).forEach(cfg => {
     const im = new Image();
     im.src = cfg.src;
   });
 
-  // อ้างอิง DOM
   const qrImg   = document.getElementById('contact-qr-img');
   const qrWrap  = document.getElementById('qr-wrap');
   const qrLabel = document.getElementById('qr-platform-label');
   const fallback= document.getElementById('qr-fallback');
   const toggleButtons = document.querySelectorAll('[data-show-qr]');
 
-  // ฟังก์ชันสลับ QR
   function showQR(key) {
     if (!map[key]) return;
     const conf = map[key];
 
-    // ปรับปุ่ม active
+    // active button visual
     toggleButtons.forEach(b => b.classList.remove('active'));
     const btn = document.querySelector('[data-show-qr="' + key + '"]');
     if (btn) btn.classList.add('active');
 
-    // เปลี่ยน frame class
+    // change wrapper class for color border
     if (qrWrap) {
       qrWrap.classList.remove('ig','fb','line');
       qrWrap.classList.add(conf.wrapClass);
     }
 
-    // แสดงภาพใหม่อย่างปลอดภัย
-    if (qrImg) {
-      // ซ่อน fallback ขณะโหลด
-      if (fallback) fallback.classList.add('hidden');
+    if (!qrImg) return;
 
-      qrImg.style.display = 'block';
-      // set src ก่อน แล้ว handle onload/onerror
-      qrImg.onload = function () {
-        qrImg.style.display = 'block';
-        if (fallback) { fallback.classList.add('hidden'); fallback.setAttribute('aria-hidden','true'); }
-      };
-      qrImg.onerror = function () {
-        qrImg.style.display = 'none';
-        if (fallback) { fallback.classList.remove('hidden'); fallback.setAttribute('aria-hidden','false'); }
-      };
-      qrImg.src = conf.src;
-      if (qrLabel) qrLabel.textContent = conf.label;
-    }
+    // hide fallback during load
+    if (fallback) fallback.classList.add('hidden');
+
+    // try load; onerror shows fallback
+    qrImg.style.display = 'block';
+    qrImg.onload = function () {
+      // success
+      if (fallback) { fallback.classList.add('hidden'); fallback.setAttribute('aria-hidden','true'); }
+    };
+    qrImg.onerror = function () {
+      qrImg.style.display = 'none';
+      if (fallback) { fallback.classList.remove('hidden'); fallback.setAttribute('aria-hidden','false'); }
+    };
+    // set src (this triggers onload/onerror)
+    qrImg.src = conf.src;
+    if (qrLabel) qrLabel.textContent = conf.label;
   }
 
-  // ผูก event ให้ปุ่มทุกปุ่ม
   if (toggleButtons && toggleButtons.length) {
     toggleButtons.forEach(btn => {
-      btn.addEventListener('click', function (e) {
+      btn.addEventListener('click', function () {
         const key = btn.getAttribute('data-show-qr');
         showQR(key);
       });
     });
   }
 
-  // ตั้งค่าเริ่มต้น: ถ้ามีปุ่มที่ active อยู่ ให้ใช้ key นั้น
+  // initial
   const activeBtn = document.querySelector('[data-show-qr].active') || document.querySelector('[data-show-qr="ig"]');
   if (activeBtn) {
     showQR(activeBtn.getAttribute('data-show-qr'));
   } else {
-    // fallback defaults
     showQR('ig');
   }
+
+  // DEBUG: ถ้าโหลดไม่ขึ้น ให้ log URL ที่พยายามโหลด
+  // (ลบออกได้เมื่อเสร็จ)
+  //console.log('QR base used:', base);
 });
+
