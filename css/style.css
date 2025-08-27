@@ -388,40 +388,87 @@ transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
   --bg-ty-out: -2%;           /* เคลื่อนออกเล็กน้อย */
 }
 
-/* Keep slideshow images exactly as original (no filter, no fade) */
-body.index .bg-slideshow .slide{
-  filter: none;               /* ใช้สีและคอนทราสต์ต้นฉบับ 100% */
-  image-rendering: auto;      /* คงความคม */
+/* --- Very specific global safety: make sure slideshow frames don't tint images --- */
+
+
+/* ให้รูปครอบเต็มกรอบตามที่ออกแบบ */
+.bg-slideshow .slide {
+  background-size: cover !important;
+  background-position: center center !important;
 }
 
-/* ลบ overlay film ออก (ไม่มีความขาวทับแล้ว) */
-.bg-slideshow .slide::after{
-  content: none !important;
+
+/* ให้ภาพแสดงคมชัดตามต้นฉบับ */
+/* image-rendering: auto !important; */
+
+
+/* --- Extra defensive rules in case images are <img> or <picture> inside slides --- */
+.bg-slideshow img,
+.bg-slideshow picture,
+.bg-slideshow .slide img {
+-webkit-filter: none !important;
+filter: none !important;
+image-rendering: auto !important;
+mix-blend-mode: normal !important;
 }
 
-/* Animation — only gentle movement, no blur */
+
+/* --- Optional: tiny neutral veil variable (set to 0 for exact original) --- */
+/* ค่าเริ่มต้นคือ 0 (ไม่มีการทับสี) — ถ้าต้องการให้ยังมี veil เล็กมาก ให้ตั้งเป็น 0.01 (1%) */
+:root { --bg-original-veil: 0; }
+
+
+/* ถ้าต้องการให้มี veil เล็กมากจริงๆ (ไม่แนะนำ) ให้เอา comment ออกจากบล็อกต่อไปนี้ */
+/*
+.bg-slideshow .slide::after {
+content: "";
+position: absolute;
+inset: 0;
+pointer-events: none;
+background: rgba(255,255,255,var(--bg-original-veil));
+}
+*/
+
+
+/* --- Keep animation but do not change color values inside it --- */
 @keyframes slide-cycle {
-  0%   { opacity: 0; transform: translateY(var(--bg-ty-in)) scale(var(--bg-scale)); }
-  5%   { opacity: 1; transform: translateY(0) scale(1); }
-  30%  { opacity: 1; transform: translateY(-0.8%) scale(calc(var(--bg-scale) + 0.002)); }
-  35%  { opacity: 0; transform: translateY(var(--bg-ty-out)) scale(calc(var(--bg-scale) + 0.004)); }
-  100% { opacity: 0; transform: translateY(var(--bg-ty-out)) scale(calc(var(--bg-scale) + 0.004)); }
+0% { opacity: 0; transform: translateY(6px) scale(1.000); }
+5% { opacity: 1; transform: translateY(0) scale(1); }
+30% { opacity: 1; transform: translateY(-0.8%) scale(1.0005); }
+35% { opacity: 0; transform: translateY(-2%) scale(1.001); }
+100% { opacity: 0; transform: translateY(-2%) scale(1.001); }
 }
 
-/* Specific to bg1–bg4: keep as is, no filter */
-.bg-slideshow .slide[style*="bg1.jpg"],
-.bg-slideshow .slide[style*="bg2.jpg"],
-.bg-slideshow .slide[style*="bg3.jpg"],
-.bg-slideshow .slide[style*="bg4.jpg"]{
-  filter: none;
+
+/* --- Respect reduced-motion users --- */
+@media (prefers-reduced-motion: reduce) {
+body.index .bg-slideshow .slide { animation: none !important; opacity: 1 !important; transform: none !important; }
 }
 
-/* Hi-DPI (retina) — same original clarity */
-@media (min-resolution: 2dppx){
-  body.index .bg-slideshow .slide{
-    filter: none;
-  }
+
+/* --- High DPI: keep original clarity --- */
+@media (min-resolution: 2dppx) {
+body.index .bg-slideshow .slide { image-rendering: auto !important; }
 }
 
-/* Respect reduced-motion users: no extra overrides needed */
 
+/* --- Notes & troubleshooting ---
+1) วางไฟล์นี้ไว้หลังไฟล์หลัก (เช่น <link rel="stylesheet" href="/css/style-bg-originals.css">)
+2) ถ้าหลังติดตั้งแล้วยังเห็นการปรุงสี ให้ตรวจสอบว่าไม่ได้มี JavaScript ที่เขียน inline styles
+เช่น element.style.filter = 'saturate(1.1) brightness(0.98)'; — ถ้ามี ให้ลบ/แก้ หรือใช้ JS ด้านล่างล้างค่า
+3) หากยังมี pseudo-element overlay อยู่ ให้ค้นหาในไฟล์หลักว่า .bg-slideshow .slide::after ถูกนิยามไว้ที่ไหน
+และลบหรือ comment ออก
+
+
+ตัวอย่าง JS (เรียกใช้หลัง DOM load) — ใช้เมื่อ CSS อย่างเดียวไม่พอ:
+document.addEventListener('DOMContentLoaded', function(){
+document.querySelectorAll('.bg-slideshow .slide').forEach(function(s){
+s.style.filter = '';
+s.style.webkitFilter = '';
+// ถ้ามี pseudo overlay ที่ถูกสร้างด้วย JS ให้ลบ node ที่ชื่อ .slide-overlay (ตัวอย่าง)
+var ov = s.querySelector('.slide-overlay'); if(ov) ov.remove();
+});
+});
+
+
+========================================================================== */
