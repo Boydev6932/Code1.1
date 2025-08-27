@@ -13,14 +13,16 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="index">
-  <!-- Background slideshow: 4 ภาพ -->
+
+  <!-- Background slideshow -->
   <div class="bg-slideshow" aria-hidden="true">
-    <img class="slide" src="assets/bg1.png" alt="Background 1" loading="lazy" decoding="async">
-    <img class="slide" src="assets/bg2.png" alt="Background 2" loading="lazy" decoding="async">
-    <img class="slide" src="assets/bg3.png" alt="Background 3" loading="lazy" decoding="async">
-    <img class="slide" src="assets/bg4.png" alt="Background 4" loading="lazy" decoding="async">
+    <div class="slide" style="background-image: url('assets/bg1.png');"></div>
+    <div class="slide" style="background-image: url('assets/bg2.png');"></div>
+    <div class="slide" style="background-image: url('assets/bg3.png');"></div>
+    <div class="slide" style="background-image: url('assets/bg4.png');"></div>
   </div>
 
+  <!-- Overlay content -->
   <div class="overlay">
     <div class="container">
       <div class="logos" aria-hidden="false">
@@ -60,5 +62,6 @@
   </div>
 
   <script src="js/script.js" defer></script>
+  <script src="js/bg-slideshow.js" defer></script>
 </body>
 </html>
