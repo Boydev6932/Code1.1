@@ -379,17 +379,17 @@ transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 .btn-ghost { pointer-events: auto; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
 .qr-wrap { pointer-events: auto; z-index: 1; } /* ทำให้ภาพ bg1.jpg bg2.jpg bg3.jpg bg4.jpg สีชัดเจนขึ้น ภาพความชัดเพิ่มขึ้น แต่ภาพยังจางนิดนึง ให้มองเห็นภาพชัดเจน ทำอย่างละเอียดเหมือนเดิมทุกอย่าง เหมือนคัดลอกข้อความ ห้ามข้ามบรรทัดแม้แต่บรรทัดเดียว อ่านให้ครบถ้วน ทำให้ละเอียด */
 
-/* ========== BG ENHANCEMENT PATCH (bg1.jpg–bg4.jpg: vivid + sharper, still slightly faded) ========== */
+/* ========== BG ENHANCEMENT PATCH (bg1.jpg–bg4.jpg: vivid, sharp, almost original colors + slight white film) ========== */
 
 /* Tunable variables for background enhancement */
 :root{
-  --bg-enh-sat: 1.18;        /* เพิ่มความสดของสี */
-  --bg-enh-ctr: 1.12;        /* เพิ่มคอนทราสต์เล็กน้อยให้คมชัด */
-  --bg-enh-br:  1.02;        /* เพิ่มความสว่างเล็กน้อย */
-  --bg-fade-overlay: 0.08;   /* คงความจางนิดหน่อยตามที่ต้องการ */
-  --bg-scale: 1.008;         /* ลด scale ตอนเคลื่อนไหวเพื่อไม่ให้ภาพเบลอ */
-  --bg-ty-in: 6px;           /* ขยับน้อยลงเพื่อคงความคม */
-  --bg-ty-out: -3%;          /* เคลื่อนออกน้อยลง */
+  --bg-enh-sat: 1.28;        /* เพิ่มความสดของสีให้เหมือนต้นฉบับมากขึ้น */
+  --bg-enh-ctr: 1.18;        /* เพิ่มคอนทราสต์ให้คมชัด */
+  --bg-enh-br:  1.04;        /* เพิ่มความสว่างเล็กน้อย */
+  --bg-fade-overlay: 0.045;  /* ฟิล์มขาวเพียงน้อยมาก ~4.5% */
+  --bg-scale: 1.006;         /* scale น้อยลง คงความคม */
+  --bg-ty-in: 6px;           /* ขยับเข้าเล็กน้อย */
+  --bg-ty-out: -2%;          /* เคลื่อนออกเล็กน้อย */
 }
 
 /* Apply global enhancement to all slideshow slides */
@@ -398,7 +398,7 @@ body.index .bg-slideshow .slide{
   image-rendering: auto;
 }
 
-/* Add a very subtle white wash soภาพยังจางนิดนึง */
+/* White overlay film: very subtle, keeps text readable but not washed out */
 .bg-slideshow .slide::after{
   content:"";
   position:absolute;
@@ -407,13 +407,13 @@ body.index .bg-slideshow .slide{
   pointer-events:none;
 }
 
-/* Re-define keyframes with gentler movement (sharper look) */
+/* Re-define keyframes with gentler movement (preserve clarity) */
 @keyframes slide-cycle {
   0%   { opacity: 0; transform: translateY(var(--bg-ty-in)) scale(var(--bg-scale)); }
   5%   { opacity: 1; transform: translateY(0) scale(1); }
-  30%  { opacity: 1; transform: translateY(-1.2%) scale(calc(var(--bg-scale) + 0.004)); }
-  35%  { opacity: 0; transform: translateY(var(--bg-ty-out)) scale(calc(var(--bg-scale) + 0.006)); }
-  100% { opacity: 0; transform: translateY(var(--bg-ty-out)) scale(calc(var(--bg-scale) + 0.006)); }
+  30%  { opacity: 1; transform: translateY(-1%) scale(calc(var(--bg-scale) + 0.003)); }
+  35%  { opacity: 0; transform: translateY(var(--bg-ty-out)) scale(calc(var(--bg-scale) + 0.005)); }
+  100% { opacity: 0; transform: translateY(var(--bg-ty-out)) scale(calc(var(--bg-scale) + 0.005)); }
 }
 
 /* Extra boost targeted to the four files mentioned */
@@ -421,14 +421,15 @@ body.index .bg-slideshow .slide{
 .bg-slideshow .slide[style*="bg2.jpg"],
 .bg-slideshow .slide[style*="bg3.jpg"],
 .bg-slideshow .slide[style*="bg4.jpg"]{
-  filter: saturate(1.22) contrast(1.14) brightness(1.03);
+  filter: saturate(1.30) contrast(1.20) brightness(1.05);
 }
 
 /* Hi-DPI fine-tune for clarity on retina displays */
 @media (min-resolution: 2dppx){
   body.index .bg-slideshow .slide{
-    filter: saturate(1.20) contrast(1.13) brightness(1.03);
+    filter: saturate(1.32) contrast(1.21) brightness(1.05);
   }
 }
 
 /* Respect reduced-motion users: no extra overrides needed here */
+
