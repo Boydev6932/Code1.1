@@ -379,29 +379,24 @@ transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 .btn-ghost { pointer-events: auto; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
 .qr-wrap { pointer-events: auto; z-index: 1; } /* ทำให้ภาพ bg1.jpg bg2.jpg bg3.jpg bg4.jpg สีชัดเจนขึ้น ภาพความชัดเพิ่มขึ้น แต่ภาพยังจางนิดนึง ให้มองเห็นภาพชัดเจน ทำอย่างละเอียดเหมือนเดิมทุกอย่าง เหมือนคัดลอกข้อความ ห้ามข้ามบรรทัดแม้แต่บรรทัดเดียว อ่านให้ครบถ้วน ทำให้ละเอียด */
 
-/* ========== BG ENHANCEMENT PATCH (bg1.jpg–bg4.jpg: keep original sharp colors, add ultra-light white film) ========== */
+/* ========== BG ENHANCEMENT PATCH (bg1.jpg–bg4.jpg: pure original, no white overlay) ========== */
 
 /* Tunable variables for background enhancement */
 :root{
-  --bg-fade-overlay: 0.025;   /* ฟิล์มขาวบางสุด ๆ ~2.5% เท่านั้น */
-  --bg-scale: 1.004;          /* scale น้อยลง เพื่อไม่ให้เบลอ */
+  --bg-scale: 1.004;          /* scale น้อย เพื่อไม่ให้เบลอ */
   --bg-ty-in: 6px;            /* ขยับเข้าเล็กน้อย */
   --bg-ty-out: -2%;           /* เคลื่อนออกเล็กน้อย */
 }
 
-/* Keep slideshow images exactly as original (no extra filter) */
+/* Keep slideshow images exactly as original (no filter, no fade) */
 body.index .bg-slideshow .slide{
-  filter: none;               /* ใช้สีและคอนทราสต์ต้นฉบับ */
+  filter: none;               /* ใช้สีและคอนทราสต์ต้นฉบับ 100% */
   image-rendering: auto;      /* คงความคม */
 }
 
-/* White overlay film: ultra-light, just enough for text readability */
+/* ลบ overlay film ออก (ไม่มีความขาวทับแล้ว) */
 .bg-slideshow .slide::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background: rgba(255,255,255,var(--bg-fade-overlay));
-  pointer-events:none;
+  content: none !important;
 }
 
 /* Animation — only gentle movement, no blur */
@@ -413,7 +408,7 @@ body.index .bg-slideshow .slide{
   100% { opacity: 0; transform: translateY(var(--bg-ty-out)) scale(calc(var(--bg-scale) + 0.004)); }
 }
 
-/* Specific to bg1–bg4: also no filter, keep original vivid look */
+/* Specific to bg1–bg4: keep as is, no filter */
 .bg-slideshow .slide[style*="bg1.jpg"],
 .bg-slideshow .slide[style*="bg2.jpg"],
 .bg-slideshow .slide[style*="bg3.jpg"],
@@ -421,7 +416,7 @@ body.index .bg-slideshow .slide{
   filter: none;
 }
 
-/* Hi-DPI (retina) — keep same original clarity */
+/* Hi-DPI (retina) — same original clarity */
 @media (min-resolution: 2dppx){
   body.index .bg-slideshow .slide{
     filter: none;
