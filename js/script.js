@@ -3,39 +3,130 @@
    - safe (no innerHTML), guards for missing elements
    - fallback images as inline SVG if asset missing
    - supports both index (name search) & contact-admin (QR toggle)
-   ========================================================================== */
+   -------------------------------------------------------------------------- */
+
 (function () {
   'use strict';
 
-  /* ---------- SLIDESHOW ---------- */
+  /* ========== CONFIG ========== */
+  const ASSETS_DIR     = './assets';      // โฟลเดอร์รูป (relative to HTML)
+  const SLIDE_INTERVAL = 7000;            // ms: เวลาพักก่อนเปลี่ยนภาพ
+  const TRANSITION_MS  = 2000;            // ms: เวลาการเลื่อน (ต้องตรงกับ CSS transition ใช้งานทั้งคู่)
+
+  /* ========== UTILS ========== */
+
+  // แปลงค่า backgroundImage "url('...')" ให้เป็น URL ธรรมดา หรือ null
+  function extractUrl(bg) {
+    if (!bg || bg === 'none') return null;
+    // bg อาจเป็น: url("assets/bg1.jpg") หรือ url(assets/bg1.jpg)
+    const m = /url\((['"]?)(.+?)\1\)/.exec(bg);
+    return m ? m[2] : null;
+  }
+
+  // สร้าง SVG fallback เป็น data URI (เรียบง่าย)
+  function makeBgFallback(i) {
+    const colors = ['#7f8c8d', '#95a5a6', '#8e9aa3', '#9aa5ab'];
+    const color = colors[i % colors.length];
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'><rect width='100%' height='100%' fill='${color}'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial,Segoe UI' font-size='28' fill='#ffffff'>Background ${i+1}</text></svg>`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+  }
+
+  // สร้าง QR fallback (data URI)
+  function makeQrFallback(name) {
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'><rect width='100%' height='100%' rx='20' fill='#f3f4f6'/><rect x='18' y='18' width='284' height='284' rx='12' fill='white' stroke='#e5e7eb'/><text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle' font-family='Arial,Segoe UI' font-size='18' fill='#111'>QR — ${name}</text></svg>`;
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+  }
+
+  /* ========== SLIDESHOW (เลื่อนขึ้นจาก assets) ========== */
   function initSlideshow() {
-    const slides = document.querySelectorAll('.bg-slideshow .slide');
-    if (!slides || slides.length === 0) return;
+    const container = document.querySelector('.bg-slideshow');
+    if (!container) return;
 
-    let current = 0;
+    const slidesNodeList = container.querySelectorAll('.slide');
+    if (!slidesNodeList || slidesNodeList.length === 0) return;
 
+    const slides = Array.from(slidesNodeList);
+
+    // เตรียม preload และตั้งค่าเริ่มต้น
     slides.forEach((s, i) => {
+      // หา url ที่มีอยู่ (inline style หรือ computed)
+      const inlineBg = s.style.backgroundImage;
+      const computedBg = window.getComputedStyle(s).backgroundImage;
+      let url = extractUrl(inlineBg) || extractUrl(computedBg);
+
+      // ถ้าไม่พบ ให้กำหนดภาพตาม convention assets/bg{i+1}.jpg
+      if (!url) {
+        url = `${ASSETS_DIR}/bg${i + 1}.jpg`;
+        s.style.backgroundImage = `url("${url}")`;
+      }
+
+      // preload ภาพ เพื่อลดการกระพริบตอนสลับ
+      const img = new Image();
+      img.onload = function () {
+        // ถ้ามีภาพโหลดได้ ให้เพิ่ม class บน body เพื่อให้ CSS fallback หายไป (ถ้าใช้)
+        document.body.classList.add('has-bg-images');
+      };
+      img.onerror = function () {
+        // ถ้าโหลดไม่ขึ้น เปลี่ยนเป็น fallback SVG
+        s.style.backgroundImage = `url("${makeBgFallback(i)}")`;
+      };
+      // เริ่ม preload
+      img.src = url;
+
+      // ตั้งค่าการแสดงผล (positioning / transition)
       s.style.position = 'absolute';
-      s.style.top = 0;
-      s.style.left = 0;
+      s.style.left = '0';
       s.style.width = '100%';
       s.style.height = '100%';
       s.style.backgroundSize = 'cover';
       s.style.backgroundPosition = 'center';
-      s.style.transition = 'opacity 1s ease-in-out';
-      s.style.opacity = i === 0 ? 1 : 0;
+      s.style.transition = `top ${TRANSITION_MS}ms ease-in-out`;
+      s.style.willChange = 'top';
+      s.style.top = i === 0 ? '0%' : '100%';
+      s.style.zIndex = i === 0 ? '1' : '0';
+      s.setAttribute('aria-hidden', i === 0 ? 'false' : 'true');
     });
 
-    setInterval(() => {
-      slides[current].style.opacity = 0;
+    // current index
+    let current = 0;
+
+    // ฟังก์ชันเปลี่ยนภาพถัดไป (เลื่อนขึ้น)
+    function nextSlide() {
+      const prev = current;
       current = (current + 1) % slides.length;
-      slides[current].style.opacity = 1;
-    }, 4000);
+
+      const prevSlide = slides[prev];
+      const nextSlideEl = slides[current];
+
+      // เตรียม z-index ให้ next อยู่เหนือ prev ขณะเลื่อน
+      nextSlideEl.style.zIndex = '2';
+      nextSlideEl.setAttribute('aria-hidden', 'false');
+
+      // เริ่มแอนิเมชัน: prev เลื่อนขึ้นออก (-100%), next เลื่อนขึ้นมา (0%)
+      // (ทั้งสองมี transition ที่กำหนดไว้แล้ว)
+      prevSlide.style.top = '-100%';
+      nextSlideEl.style.top = '0%';
+
+      // หลัง transition เสร็จ: reset prev ให้กลับลงด้านล่าง (100%) เพื่อใช้ใหม่ในรอบต่อไป
+      window.setTimeout(() => {
+        // คืนค่า z-index และ position ของ prev เพื่อเตรียมการวนซ้ำ
+        prevSlide.style.top = '100%';
+        prevSlide.style.zIndex = '0';
+        prevSlide.setAttribute('aria-hidden', 'true');
+
+        // next เป็นหลักแล้ว ให้ปรับ zIndex ให้เป็น 1 (ป้องกัน stacking ปัญหา)
+        nextSlideEl.style.zIndex = '1';
+      }, TRANSITION_MS);
+    }
+
+    // เริ่ม loop
+    const intervalId = window.setInterval(nextSlide, SLIDE_INTERVAL);
+
+    // บันทึก id ไว้บน container เผื่ออยาก clearLater
+    container.__slideshowInterval = intervalId;
   }
 
-  document.addEventListener('DOMContentLoaded', initSlideshow);
-
-  /* ---------- DATA ---------- */
+  /* ========== DATA (รายชื่อ) ========== */
   const names = [
     "กบิลพัสดุ์​ แสงชัย","แทนคุณ จันงาม","สุรบดี ทองสุก","นราวิชญ์ ไชยหันขวา",
     "จิรัชยานันท์ แข็งขยัน","อภิชา เพียชิน","ญาณาธ ธนชิตชัยกุล","ทิวากร ฉัตรานุฉัตร",
@@ -71,240 +162,347 @@
 
   const needFixIndexes = [0,1,4,7,8,11,18,28,48,56,58,63,64,71,74,76,83,100,105,114,115,116];
 
-  /* ---------- HELPERS ---------- */
-  const onReady = fn => { if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', fn); else fn(); };
-  const normalize = s => (s||'').toString().trim().replace(/\s+/g,' ').toLowerCase();
+  /* ========== HELPERS ========== */
 
-  // Levenshtein (fuzzy search)
-  function levenshtein(a,b){
-    const m=a.length,n=b.length;if(!m)return n;if(!n)return m;
-    const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
-    for(let i=0;i<=m;i++)dp[i][0]=i;
-    for(let j=0;j<=n;j++)dp[0][j]=j;
-    for(let i=1;i<=m;i++){
-      for(let j=1;j<=n;j++){
-        const cost=a[i-1]===b[j-1]?0:1;
-        dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+cost);
+  // onReady: ถ้า DOM ยัง loading ให้รอ DOMContentLoaded มิฉะนั้นเรียกทันที
+  const onReady = function (fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  };
+
+  // normalize string for search
+  const normalize = function (s) {
+    return (s || '').toString().trim().replace(/\s+/g, ' ').toLowerCase();
+  };
+
+  // Levenshtein distance (for fuzzy matching)
+  function levenshtein(a, b) {
+    const m = a.length;
+    const n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+
+    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        dp[i][j] = Math.min(
+          dp[i - 1][j] + 1,
+          dp[i][j - 1] + 1,
+          dp[i - 1][j - 1] + cost
+        );
       }
     }
+
     return dp[m][n];
   }
-  const similarity=(q,t)=>{const L=Math.max(q.length,t.length)||1;return 1-(levenshtein(q,t)/L);};
 
-  /* ---------- FALLBACK MAKERS ---------- */
-  function makeQrFallback(name){
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'><rect width='100%' height='100%' rx='20' fill='#f3f4f6'/><rect x='18' y='18' width='284' height='284' rx='12' fill='white' stroke='#e5e7eb'/><text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle' font-family='Arial,Segoe UI' font-size='18' fill='#111'>QR — ${name}</text></svg>`;
-    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-  }
+  const similarity = function (q, t) {
+    const L = Math.max(q.length, t.length) || 1;
+    return 1 - (levenshtein(q, t) / L);
+  };
 
-  function makeBgFallback(i){
-    const colors=['#7f8c8d','#95a5a6','#8e9aa3','#9aa5ab'];
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'><defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'><stop offset='0' stop-color='${colors[i%colors.length]}'/><stop offset='1' stop-color='#e6e9ee'/></linearGradient></defs><rect width='100%' height='100%' fill='url(#g)'/></svg>`;
-    return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
-  }
+  /* ========== INDEX (search UI) ========== */
+  function initIndex() {
+    const nameSelect = document.getElementById('name');
+    if (!nameSelect) return;
 
-  /* ---------- INDEX ---------- */
-  function initIndex(){
-    const nameSelect=document.getElementById('name');
-    if(!nameSelect) return;
+    const searchInput = document.getElementById('name-search');
+    const searchBtn   = document.getElementById('search-btn');
+    const resetBtn    = document.getElementById('reset-btn');
+    const resultBox   = document.getElementById('result');
 
-    const searchInput=document.getElementById('name-search');
-    const searchBtn=document.getElementById('search-btn');
-    const resetBtn=document.getElementById('reset-btn');
-    const resultBox=document.getElementById('result');
-
-    if(nameSelect.options.length<=1){
-      names.forEach(n=>{
-        const opt=document.createElement('option');
-        opt.value=n;opt.textContent=n;
+    // populate select if empty
+    if (nameSelect.options.length <= 1) {
+      names.forEach(n => {
+        const opt = document.createElement('option');
+        opt.value = n;
+        opt.textContent = n;
         nameSelect.appendChild(opt);
       });
     }
 
-    function setResult(text,mode){
-      if(!resultBox)return;
-      resultBox.className='';
-      if(!text||mode==='hide'){resultBox.textContent='';resultBox.classList.add('hidden');return;}
-      resultBox.textContent=text;
+    // set result box text + classes
+    function setResult(text, mode) {
+      if (!resultBox) return;
+      resultBox.className = '';
+      if (!text || mode === 'hide') {
+        resultBox.textContent = '';
+        resultBox.classList.add('hidden');
+        return;
+      }
+      resultBox.textContent = text;
       resultBox.classList.remove('hidden');
-      if(mode==='ok')resultBox.classList.add('status-ok');
-      if(mode==='bad')resultBox.classList.add('status-bad');
-      if(mode==='warn')resultBox.classList.add('status-warn');
+      if (mode === 'ok') resultBox.classList.add('status-ok');
+      if (mode === 'bad') resultBox.classList.add('status-bad');
+      if (mode === 'warn') resultBox.classList.add('status-warn');
     }
 
-    function findBestIndex(query){
-      const q=normalize(query);
-      if(q.length<2)return-1;
-      let best=-1,bestScore=-Infinity;
-      for(let i=0;i<names.length;i++){
-        const full=normalize(names[i]);
-        const parts=full.split(' ');
-        const first=parts[0]||'',last=parts[parts.length-1]||'';
-        let score=0;
-        if(first.includes(q))score+=0.35;
-        if(last.includes(q))score+=0.45;
-        if(full.includes(q))score+=0.2;
-        const sim=Math.max(similarity(q,first),similarity(q,last),similarity(q,full));
-        score+=sim;
-        if(score>bestScore){bestScore=score;best=i;}
+    // fuzzy find best index
+    function findBestIndex(query) {
+      const q = normalize(query);
+      if (q.length < 2) return -1;
+      let best = -1;
+      let bestScore = -Infinity;
+      for (let i = 0; i < names.length; i++) {
+        const full = normalize(names[i]);
+        const parts = full.split(' ');
+        const first = parts[0] || '';
+        const last = parts[parts.length - 1] || '';
+        let score = 0;
+        if (first.includes(q)) score += 0.35;
+        if (last.includes(q)) score += 0.45;
+        if (full.includes(q)) score += 0.2;
+        const sim = Math.max(similarity(q, first), similarity(q, last), similarity(q, full));
+        score += sim;
+        if (score > bestScore) {
+          bestScore = score;
+          best = i;
+        }
       }
       return best;
     }
 
-    function selectIndex(idx){
-      if(idx<0||idx>=names.length){setResult('⚠️ ไม่พบชื่อที่ใกล้เคียง กรุณาลองพิมพ์ใหม่','warn');return;}
-      nameSelect.value=names[idx];
+    // select index and show status
+    function selectIndex(idx) {
+      if (idx < 0 || idx >= names.length) {
+        setResult('⚠️ ไม่พบชื่อที่ใกล้เคียง กรุณาลองพิมพ์ใหม่', 'warn');
+        return;
+      }
+      nameSelect.value = names[idx];
       nameSelect.classList.add('is-matched');
-      nameSelect.dispatchEvent(new Event('change',{bubbles:true}));
-      try{nameSelect.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
-      if(needFixIndexes.includes(idx))setResult('❌ ติด มผ. — กรุณาแก้ไข❗','bad');else setResult('✅ ผ่าน มผ. — ทำดีต่อไป🤟','ok');
+      nameSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      try {
+        nameSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } catch (e) { /* ignore */ }
+      if (needFixIndexes.includes(idx)) {
+        setResult('❌ ติด มผ. — กรุณาแก้ไข❗', 'bad');
+      } else {
+        setResult('✅ ผ่าน มผ. — ทำดีต่อไป🤟', 'ok');
+      }
     }
 
-    function runSearch(){
-      if(!searchInput)return;
-      const q=searchInput.value.trim();
-      if(q.length<2){searchInput.classList.remove('shake');void searchInput.offsetWidth;searchInput.classList.add('shake');searchInput.focus();return;}
-      const idx=findBestIndex(q);
+    function runSearch() {
+      if (!searchInput) return;
+      const q = searchInput.value.trim();
+      if (q.length < 2) {
+        searchInput.classList.remove('shake');
+        void searchInput.offsetWidth;
+        searchInput.classList.add('shake');
+        searchInput.focus();
+        return;
+      }
+      const idx = findBestIndex(q);
       selectIndex(idx);
     }
 
-    if(searchBtn)searchBtn.addEventListener('click',runSearch);
-    if(searchInput)searchInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch();}});
-    if(nameSelect)nameSelect.addEventListener('change',()=>{
-      const val=nameSelect.value;
-      if(!val){setResult('', 'hide');return;}
-      const idx=names.indexOf(val);
-      if(idx===-1){setResult('', 'hide');return;}
-      if(needFixIndexes.includes(idx))setResult('❌ ติด มผ. — กรุณาแก้ไข❗','bad');else setResult('✅ ผ่าน มผ. — ทำดีต่อไป🤟','ok');
-    });
-    if(resetBtn)resetBtn.addEventListener('click',()=>{
-      if(searchInput)searchInput.value='';
-      nameSelect.selectedIndex=0;
-      nameSelect.classList.remove('is-matched');
-      nameSelect.dispatchEvent(new Event('change',{bubbles:true}));
-      setResult('', 'hide');
-      try{window.scrollTo({top:0,behavior:'smooth'});}catch(e){}
+    // events
+    if (searchBtn) searchBtn.addEventListener('click', runSearch);
+    if (searchInput) searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        runSearch();
+      }
     });
 
-    // slideshow fallback
-    const slides=document.querySelectorAll('.bg-slideshow .slide');
-    slides.forEach((div,i)=>{
-      const bg=div.style.backgroundImage;
-      if(!bg){div.style.backgroundImage=`url('${makeBgFallback(i)}')`;}
+    if (nameSelect) nameSelect.addEventListener('change', () => {
+      const val = nameSelect.value;
+      if (!val) {
+        setResult('', 'hide');
+        return;
+      }
+      const idx = names.indexOf(val);
+      if (idx === -1) {
+        setResult('', 'hide');
+        return;
+      }
+      if (needFixIndexes.includes(idx)) {
+        setResult('❌ ติด มผ. — กรุณาแก้ไข❗', 'bad');
+      } else {
+        setResult('✅ ผ่าน มผ. — ทำดีต่อไป🤟', 'ok');
+      }
+    });
+
+    if (resetBtn) resetBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      nameSelect.selectedIndex = 0;
+      nameSelect.classList.remove('is-matched');
+      nameSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      setResult('', 'hide');
+      try {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (e) { /* ignore */ }
+    });
+
+    // slideshow fallback: ถ้า slide ไม่มี backgroundImage ให้ใส่ fallback
+    const slideEls = document.querySelectorAll('.bg-slideshow .slide');
+    slideEls.forEach((div, i) => {
+      const bgInline = div.style.backgroundImage;
+      const bgComputed = window.getComputedStyle(div).backgroundImage;
+      if (!extractUrl(bgInline) && !extractUrl(bgComputed)) {
+        div.style.backgroundImage = `url("${makeBgFallback(i)}")`;
+      }
     });
   }
 
-  /* ---------- CONTACT ---------- */
-  function initContact(){
-    const qrImg=document.getElementById('contact-qr-img')||document.getElementById('qr-img');
-    if(!qrImg)return;
-    const labelEl=document.getElementById('qr-platform-label');
-    const buttons=Array.from(document.querySelectorAll('[data-show-qr]'));
-    const card=document.querySelector('.card');
+  /* ========== CONTACT (QR toggles) ========== */
+  function initContact() {
+    const qrImg = document.getElementById('contact-qr-img') || document.getElementById('qr-img');
+    if (!qrImg) return;
 
-    const platforms={
-      ig:{label:'Instagram',file:'assets/qr-instagram.png'},
-      fb:{label:'Facebook',file:'assets/qr-facebook.png'},
-      line:{label:'LINE',file:'assets/qr-line.png'}
+    const labelEl = document.getElementById('qr-platform-label');
+    const buttons = Array.from(document.querySelectorAll('[data-show-qr]'));
+    const card    = document.querySelector('.card');
+
+    const platforms = {
+      ig:   { label: 'Instagram', file: `${ASSETS_DIR}/qr-instagram.png` },
+      fb:   { label: 'Facebook',  file: `${ASSETS_DIR}/qr-facebook.png` },
+      line: { label: 'LINE',      file: `${ASSETS_DIR}/qr-line.png` }
     };
 
-    function safeUrl(url){try{const u=new URL(url,window.location.href);if(u.protocol==='https:'||u.origin===window.location.origin)return u.href;}catch(e){}return null;}
-
-    function setPlatform(key){
-      if(!platforms[key])return;
-      const raw=platforms[key].file;
-      const safe=safeUrl(raw)||raw;
-      qrImg.onerror=()=>{qrImg.onerror=null;qrImg.src=makeQrFallback(platforms[key].label);};
-      qrImg.src=platforms[key].file;
-      if(labelEl)labelEl.textContent=platforms[key].label;
-      buttons.forEach(b=>{
-        const active=b.getAttribute('data-show-qr')===key;
-        b.classList.toggle('active',active);
-        b.setAttribute('aria-pressed',String(active));
-      });
-      if(card){card.classList.remove('accent-ig','accent-fb','accent-line');card.classList.add('accent-'+key);}
+    // ตรวจสอบ URL ปลอดภัย (relative/absolute)
+    function safeUrl(url) {
+      try {
+        const u = new URL(url, window.location.href);
+        if (u.protocol === 'https:' || u.origin === window.location.origin || u.protocol === 'file:') return u.href;
+      } catch (e) { /* ignore invalid URL */ }
+      return null;
     }
 
-    buttons.forEach(btn=>btn.addEventListener('click',()=>{setPlatform(btn.getAttribute('data-show-qr'));try{qrImg.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}));
+    function setPlatform(key) {
+      if (!platforms[key]) return;
+      const raw = platforms[key].file;
+      const safe = safeUrl(raw) || raw;
+
+      qrImg.onerror = function () {
+        qrImg.onerror = null;
+        qrImg.src = makeQrFallback(platforms[key].label);
+      };
+
+      qrImg.src = safe;
+      qrImg.alt = `QR Code ของผู้ดูแล (${platforms[key].label})`;
+
+      if (labelEl) labelEl.textContent = platforms[key].label;
+
+      buttons.forEach(b => {
+        const active = b.getAttribute('data-show-qr') === key;
+        b.classList.toggle('active', active);
+        b.setAttribute('aria-pressed', String(active));
+      });
+
+      if (card) {
+        card.classList.remove('accent-ig', 'accent-fb', 'accent-line');
+        card.classList.add(`accent-${key}`);
+      }
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = btn.getAttribute('data-show-qr');
+        setPlatform(p);
+        try { qrImg.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* ignore */ }
+      });
+    });
+
+    // ค่าเริ่มต้น
     setPlatform('ig');
   }
 
-  /* ---------- BOOT ---------- */
-  onReady(()=>{
-    try{initSlideshow();}catch(e){console.error('slideshow error',e);}
-    try{initIndex();}catch(e){console.error('initIndex error',e);}
-    try{initContact();}catch(e){console.error('initContact error',e);}
-    const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();
+  /* ========== BOOT ========== */
+  onReady(function () {
+    try {
+      initSlideshow();
+    } catch (e) {
+      console.error('slideshow error', e);
+    }
+
+    try {
+      initIndex();
+    } catch (e) {
+      console.error('initIndex error', e);
+    }
+
+    try {
+      initContact();
+    } catch (e) {
+      console.error('initContact error', e);
+    }
+
+    // set year in footer
+    const yEl = document.getElementById('year');
+    if (yEl) yEl.textContent = new Date().getFullYear();
   });
 
-})();
+  /* ========== Minimal helpers for small UI pieces (reset button / QR binds) ========== */
+  // Reset button behavior and QR toggles for any remaining elements:
+  (function minimalSharedBehaviors() {
+    // year in footer (redundant-safe)
+    const y = document.getElementById('year');
+    if (y) y.textContent = new Date().getFullYear();
 
+    // reset button (redundant-safe)
+    const nameInput = document.getElementById('name-search');
+    const resetBtn  = document.getElementById('reset-btn');
+    const resultBox = document.getElementById('result');
+    const nameSelect = document.getElementById('name');
 
-
-// js/script.js — minimal shared behaviors for index & contact pages
-
-(function () {
-  // year in footer
-  const y = document.getElementById('year');
-  if (y) y.textContent = new Date().getFullYear();
-
-  // ===== index behaviors =====
-  const nameInput = document.getElementById('name-search');
-  const resetBtn  = document.getElementById('reset-btn');
-  const resultBox = document.getElementById('result');
-  const nameSelect= document.getElementById('name');
-
-  // (ถ้ามีระบบค้นหาอยู่แล้ว ไฟล์นี้ไม่ไปยุ่ง logic เดิม เพียงแค่ reset UI)
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      if (nameInput) nameInput.value = '';
-      if (nameSelect) nameSelect.selectedIndex = 0;
-      if (resultBox) {
-        resultBox.classList.add('hidden');
-        resultBox.textContent = '';
-        resultBox.classList.remove('status-ok','status-bad','status-warn');
-      }
-      nameInput && nameInput.focus();
-    });
-  }
-
-  // ===== contact page: QR switching =====
-  const qrImg   = document.getElementById('contact-qr-img');
-  const qrWrap  = document.getElementById('qr-wrap');
-  const qrLabel = document.getElementById('qr-platform-label');
-
-  const map = {
-    ig   : { src: 'assets/qr-instagram.png', label: 'Instagram', wrapClass: 'ig' },
-    fb   : { src: 'assets/qr-facebook.png',  label: 'Facebook',  wrapClass: 'fb' },
-    line : { src: 'assets/qr-line.png',      label: 'LINE',      wrapClass: 'line' }
-  };
-
-  const toggleButtons = document.querySelectorAll('[data-show-qr]');
-  if (toggleButtons && toggleButtons.length) {
-    toggleButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        // active style
-        toggleButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        const key = btn.getAttribute('data-show-qr');
-        const conf = map[key];
-        if (!conf) return;
-
-        // swap image, label, frame class
-        if (qrImg) {
-          qrImg.src = conf.src;
-          qrImg.alt = `QR Code ของผู้ดูแล (${conf.label})`;
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (nameInput) nameInput.value = '';
+        if (nameSelect) nameSelect.selectedIndex = 0;
+        if (resultBox) {
+          resultBox.classList.add('hidden');
+          resultBox.textContent = '';
+          resultBox.classList.remove('status-ok', 'status-bad', 'status-warn');
         }
-        if (qrLabel) qrLabel.textContent = conf.label;
-        if (qrWrap) {
-          qrWrap.classList.remove('ig','fb','line');
-          qrWrap.classList.add(conf.wrapClass);
-        }
+        if (nameInput) nameInput.focus();
       });
-    });
-  }
+    }
+
+    // Simple QR toggle fallback (for elements that might exist outside initContact)
+    const qrImg = document.getElementById('contact-qr-img');
+    const qrWrap = document.getElementById('qr-wrap');
+    const qrLabel = document.getElementById('qr-platform-label');
+    const toggleButtons = document.querySelectorAll('[data-show-qr]');
+
+    const map = {
+      ig:   { src: `${ASSETS_DIR}/qr-instagram.png`, label: 'Instagram', wrapClass: 'ig' },
+      fb:   { src: `${ASSETS_DIR}/qr-facebook.png`,  label: 'Facebook',  wrapClass: 'fb' },
+      line: { src: `${ASSETS_DIR}/qr-line.png`,      label: 'LINE',      wrapClass: 'line' }
+    };
+
+    if (toggleButtons && toggleButtons.length) {
+      toggleButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          toggleButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const key = btn.getAttribute('data-show-qr');
+          const conf = map[key];
+          if (!conf) return;
+
+          if (qrImg) {
+            qrImg.src = conf.src;
+            qrImg.alt = `QR Code ของผู้ดูแล (${conf.label})`;
+          }
+          if (qrLabel) qrLabel.textContent = conf.label;
+          if (qrWrap) {
+            qrWrap.classList.remove('ig', 'fb', 'line');
+            qrWrap.classList.add(conf.wrapClass);
+          }
+        });
+      });
+    }
+  })();
+
 })();
+
 
 // js/script.js — robust QR toggle: รองรับทั้ง file:// (direct open) และ http server
 document.addEventListener('DOMContentLoaded', function () {
@@ -450,3 +648,4 @@ document.addEventListener('DOMContentLoaded', function () {
   // ค่าเริ่มต้น
   setPlatform('ig');
 })();
+
