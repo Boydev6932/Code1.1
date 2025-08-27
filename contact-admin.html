@@ -12,11 +12,38 @@
 
   <link rel="stylesheet" href="css/style.css">
 
+  <!-- สำรองสไตล์เล็กน้อย (ถ้าต้องการทดสอบแบบ standalone) -->
   <style>
-    /* สำรอง: ถ้า style.css หาย */
-    .hidden { display:none !important; }
-    .qr-wrap { width:320px; height:320px; max-width:90%; margin:0 auto; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; }
-    .qr-img { display:block; width:100%; height:auto; object-fit:contain; border-radius:18px; padding:14px; background:#fff; box-shadow:0 18px 44px rgba(0,0,0,0.15); border:1px solid rgba(0,0,0,0.04); }
+    /* ถ้า css/style.css หายหรือยังไม่ต่อท้ายด้วย additions นี่จะช่วยให้ UI ทำงานได้ทันที */
+    .hidden{ display:none !important; }
+
+    /* การจัดวางปุ่มสลับ และปุ่มกลับหน้าหลัก (additions) */
+    .swap-controls{ display:flex; gap:10px; align-items:center; justify-content:center; margin-top:12px; }
+    .swap-btn{
+      padding:10px 14px; border-radius:12px; font-weight:800; border:2px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04); color:#fff; cursor:pointer; box-shadow:0 12px 30px rgba(0,0,0,0.22);
+      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+    .swap-btn:hover{ transform: translateY(-4px); box-shadow:0 18px 38px rgba(0,0,0,0.28); }
+    .swap-btn:active{ transform: translateY(0); }
+    .swap-btn.rotate{ background: linear-gradient(135deg,var(--accent1),var(--accent2)); border-color:transparent; box-shadow:0 12px 36px rgba(79,70,229,0.18); }
+    .swap-btn.pulse{ animation:rotate-pulse .56s ease; }
+    @keyframes rotate-pulse{ 0%{ transform: scale(1) } 50%{ transform: scale(1.04) } 100%{ transform: scale(1) } }
+
+    .map-hint{ font-weight:700; color:#fff; opacity:0.95; margin-left:8px; font-size:0.95rem; }
+
+    .contact-footer{ margin-top:18px; display:flex; justify-content:center; align-items:center; gap:12px; }
+    .back-home{ display:inline-flex; align-items:center; gap:10px; text-decoration:none; font-weight:900; letter-spacing:.2px; padding:10px 16px; border-radius:9999px; color:#0b1020; background:#fff; box-shadow:0 16px 40px rgba(0,0,0,.25), inset 0 0 0 2px rgba(255,255,255,.4); }
+    .back-home .ico{ font-size:1.1rem; }
+
+    @media (max-width:420px){
+      .swap-controls{ flex-direction:column; gap:8px; }
+      .swap-btn{ width:100%; }
+      .qr-wrap{ width:84vw; height:84vw; }
+    }
+
+    /* sr-only (accessibility) */
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
   </style>
 </head>
 <body class="contact">
@@ -34,6 +61,7 @@
         <section>
           <h2 id="contact-heading" class="contact-heading">ช่องทางติดต่อผู้ดูแล</h2>
 
+          <!-- ปุ่มเลือกแพลตฟอร์มแบบเดิม (IG / FB / LINE) -->
           <div class="card-actions" role="group" aria-label="เลือกแพลตฟอร์ม">
             <button class="btn btn-ghost active" data-show-qr="ig" aria-pressed="true">แสดง QR — Instagram</button>
             <button class="btn btn-ghost" data-show-qr="fb" aria-pressed="false">แสดง QR — Facebook</button>
@@ -43,6 +71,11 @@
           <div class="qr-display" aria-live="polite">
             <div id="qr-wrap" class="qr-wrap ig" aria-hidden="false">
               <!-- โหลดจาก assets/ เฉพาะที่เดียว -->
+              <!-- Required assets (place these files in assets/):
+                   - qr-instagram.png
+                   - qr-facebook.png
+                   - qr-line.png
+              -->
               <img id="contact-qr-img" class="qr-img" src="assets/qr-instagram.png" alt="QR Code ของผู้ดูแล" width="300" height="300" loading="lazy" decoding="async">
             </div>
 
@@ -55,98 +88,195 @@
               <div class="k">Line Id : <strong>kungbang2435</strong></div>
             </div>
 
+            <!-- === ปุ่มสลับ (ก่อนหน้า / ถัดไป / สลับการจับคู่ทั้งชุด) === -->
+            <div class="swap-controls" role="group" aria-label="ควบคุมการสลับ QR">
+              <button id="qr-prev" class="swap-btn" title="ก่อนหน้า (Arrow Left)" aria-label="ก่อนหน้า">‹ ก่อนหน้า</button>
+              <button id="qr-next" class="swap-btn" title="ถัดไป (Arrow Right)" aria-label="ถัดไป">ถัดไป ›</button>
+              <button id="qr-rotate" class="swap-btn rotate" title="สลับการจับคู่ QR ทั้งหมด (หมุน)" aria-label="สลับการจับคู่ QR">🔁 สลับชุด</button>
+
+              <div id="map-hint" class="map-hint sr-only" aria-live="polite"></div>
+            </div>
+
             <div id="qr-fallback" class="qr-fallback hidden" role="status" aria-hidden="true" style="margin-top:12px;">
               <div class="muted small" style="color:rgba(255,255,255,0.95); font-weight:700;">
                 ไม่พบภาพ QR — กรุณาตรวจสอบไฟล์ที่ <code>assets/qr-*.png</code>
               </div>
             </div>
+
           </div>
 
         </section>
       </main>
 
       <footer class="site-footer">
-        <small>© <span id="year"></span> KNW Check • ระบบติดต่อผู้ดูแล</small>
+        <div class="contact-footer">
+          <a class="back-home" href="index.html" id="back-home" aria-label="กลับไปหน้าหลัก">
+            <span class="ico" aria-hidden="true">🏠</span>
+            <span>กลับหน้าหลัก</span>
+          </a>
+        </div>
+        <small style="display:block; margin-top:12px; color:rgba(255,255,255,0.9);">© <span id="year"></span> KNW Check • ระบบติดต่อผู้ดูแล</small>
       </footer>
     </div>
   </div>
 
+  <!-- JavaScript: วางไว้ก่อนปิด body เพื่อให้ DOM โหลดเสร็จก่อนทำงาน -->
   <script>
   (function(){
     // ใส่ปี
     const yearEl = document.getElementById('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // **ใช้ assets/ เท่านั้น** (ตามคำขอ)
+    // Paths & candidates: **วางไฟล์ลงใน assets/**
     const PATHS = ['assets/'];
-
-    // ชื่อไฟล์ที่สคริปต์จะลองภายใน assets/
     const FILE_CANDIDATES = {
       ig:   ['qr-instagram.png','qr-instagram.PNG','qr_instagram.png','qr-instagram.jpg'],
       fb:   ['qr-facebook.png','qr-facebook.PNG','qr_facebook.png','qr-facebook.jpg'],
       line: ['qr-line.png','qr-line.PNG','qr_line.png','qr-line.jpg']
     };
 
+    const PLATFORMS = ['ig','fb','line'];
+
     const IMG = document.getElementById('contact-qr-img');
     const FBACK = document.getElementById('qr-fallback');
     const WRAP = document.getElementById('qr-wrap');
     const PLATFORM_LABEL = document.getElementById('qr-platform-label');
+    const MAP_HINT = document.getElementById('map-hint');
 
-    function showFallback(){ if (IMG) IMG.style.display='none'; if (FBACK) FBACK.classList.remove('hidden'); }
-    function hideFallback(){ if (FBACK) FBACK.classList.add('hidden'); if (IMG) IMG.style.display=''; }
+    // rotation mapping: 0 = identity, 1 = shift right (ig->fb->line->ig), 2 = shift twice
+    let mappingRotation = 0;
+
+    // cancellation guard for async image checks
+    let latestSetId = 0;
+
+    function showFallback(){ if (IMG) IMG.style.display='none'; if (FBACK) { FBACK.classList.remove('hidden'); FBACK.setAttribute('aria-hidden','false'); } }
+    function hideFallback(){ if (FBACK) { FBACK.classList.add('hidden'); FBACK.setAttribute('aria-hidden','true'); } if (IMG) IMG.style.display=''; }
 
     function testSrc(src){
       return new Promise(resolve=>{
         const t = new Image();
         t.onload = ()=>resolve({ok:true,src});
         t.onerror = ()=>resolve({ok:false,src});
+        // add cache-busting small token if needed: omit for now
         t.src = src;
       });
     }
 
     async function findWorkingSrc(platformKey){
-      const names = FILE_CANDIDATES[platformKey] || FILE_CANDIDATES.ig;
+      const idx = PLATFORMS.indexOf(platformKey);
+      const mappedKey = PLATFORMS[(idx + mappingRotation) % PLATFORMS.length];
+      const names = FILE_CANDIDATES[mappedKey] || FILE_CANDIDATES.ig;
       const tries = [];
       PATHS.forEach(p => names.forEach(n => tries.push(p + n)));
-      console.log('QR: trying', tries);
+
       for (const s of tries){
-        const r = await testSrc(s);
-        if (r.ok) return r.src;
+        try{
+          const r = await testSrc(s);
+          if (r.ok) return r.src;
+        }catch(e){ /* ignore */ }
       }
       return null;
     }
 
-    async function setPlatform(key){
+    function updatePlatformButtons(activeKey){
       document.querySelectorAll('[data-show-qr]').forEach(btn=>{
-        const on = btn.dataset.showQr === key;
+        const on = btn.dataset.showQr === activeKey;
         btn.classList.toggle('active', on);
         btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
-      if (PLATFORM_LABEL) PLATFORM_LABEL.textContent = key==='ig' ? 'Instagram' : key==='fb' ? 'Facebook' : 'LINE';
+    }
+
+    function labelFor(key){ return key==='ig' ? 'Instagram' : key==='fb' ? 'Facebook' : 'LINE'; }
+
+    async function setPlatform(key){
+      const myId = ++latestSetId;
+      updatePlatformButtons(key);
+      if (PLATFORM_LABEL) PLATFORM_LABEL.textContent = labelFor(key);
       if (WRAP) WRAP.className = 'qr-wrap ' + (key==='ig' ? 'ig' : key==='fb' ? 'fb' : 'line');
 
       hideFallback();
+
+      // subtle loading state
+      if (IMG){ IMG.style.opacity = '0.6'; IMG.style.filter = 'blur(1px) grayscale(.02)'; }
+
       const src = await findWorkingSrc(key);
+
+      // abort if another call happened
+      if (myId !== latestSetId) return;
+
       if (src){
-        console.log('QR: found', src);
-        IMG.src = src;
-        IMG.alt = 'QR Code ของผู้ดูแล (' + PLATFORM_LABEL.textContent + ')';
-        IMG.style.display = '';
+        if (IMG){
+          IMG.src = src;
+          IMG.alt = 'QR Code ของผู้ดูแล (' + labelFor(key) + ')';
+          IMG.style.display = '';
+          IMG.style.opacity = '';
+          IMG.style.filter = '';
+        }
         if (FBACK) FBACK.classList.add('hidden');
       } else {
-        console.warn('QR: no image found for', key);
-        showFallback();
+        if (IMG) IMG.style.opacity = '';
+        if (FBACK) FBACK.classList.remove('hidden');
+        if (IMG) IMG.style.display = 'none';
+      }
+
+      // announce mapping for assistive tech (kept in sr-only)
+      if (MAP_HINT){
+        const mapped = PLATFORMS.map((p,i)=> p + '→' + PLATFORMS[(i + mappingRotation) % PLATFORMS.length]);
+        MAP_HINT.textContent = 'การจับคู่ขณะนี้: ' + mapped.map(m=> {
+          const parts = m.split('→');
+          return (parts[0] === 'ig' ? 'IG' : parts[0] === 'fb' ? 'FB' : 'LINE') + '→' + (parts[1] === 'ig' ? 'IG' : parts[1] === 'fb' ? 'FB' : 'LINE');
+        }).join(', ');
       }
     }
 
+    // helpers for cycling
+    function nextKey(current){ const i = PLATFORMS.indexOf(current); return PLATFORMS[(i + 1) % PLATFORMS.length]; }
+    function prevKey(current){ const i = PLATFORMS.indexOf(current); return PLATFORMS[(i - 1 + PLATFORMS.length) % PLATFORMS.length]; }
+
+    // Wire events
+    let currentKey = 'ig';
+
     document.querySelectorAll('[data-show-qr]').forEach(btn=>{
-      btn.addEventListener('click', ()=> setPlatform(btn.dataset.showQr));
+      btn.addEventListener('click', ()=>{
+        const key = btn.dataset.showQr;
+        currentKey = key;
+        setPlatform(key);
+      });
     });
 
-    // เริ่มต้น
+    const btnNext = document.getElementById('qr-next');
+    const btnPrev = document.getElementById('qr-prev');
+    const btnRotate = document.getElementById('qr-rotate');
+
+    if (btnNext){ btnNext.addEventListener('click', ()=>{ currentKey = nextKey(currentKey); setPlatform(currentKey); btnNext.focus(); }); }
+    if (btnPrev){ btnPrev.addEventListener('click', ()=>{ currentKey = prevKey(currentKey); setPlatform(currentKey); btnPrev.focus(); }); }
+
+    if (btnRotate){ btnRotate.addEventListener('click', ()=>{
+      mappingRotation = (mappingRotation + 1) % PLATFORMS.length;
+      setPlatform(currentKey);
+      btnRotate.classList.add('pulse');
+      setTimeout(()=> btnRotate.classList.remove('pulse'), 600);
+      btnRotate.focus();
+    }); }
+
+    // keyboard nav
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === 'ArrowRight'){
+        currentKey = nextKey(currentKey); setPlatform(currentKey);
+      } else if (e.key === 'ArrowLeft'){
+        currentKey = prevKey(currentKey); setPlatform(currentKey);
+      } else if (e.key && e.key.toLowerCase() === 'r'){
+        mappingRotation = (mappingRotation + 1) % PLATFORMS.length; setPlatform(currentKey);
+      }
+    });
+
+    // initial render
     setPlatform('ig');
 
+    // expose for debugging / programmatic control
     window._knw_setQR = setPlatform;
+    window._knw_rotateMapping = function(steps){ mappingRotation = ((mappingRotation||0) + (steps||1)) % PLATFORMS.length; setPlatform(currentKey); };
+
   })();
   </script>
 </body>
