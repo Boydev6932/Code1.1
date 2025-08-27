@@ -15,27 +15,29 @@
 
   /* ========== UTILS ========== */
 
-  // แปลงค่า backgroundImage "url('...')" ให้เป็น URL ธรรมดา หรือ null
-  function extractUrl(bg) {
-    if (!bg || bg === 'none') return null;
-    // bg อาจเป็น: url("assets/bg1.jpg") หรือ url(assets/bg1.jpg)
-    const m = /url\((['"]?)(.+?)\1\)/.exec(bg);
-    return m ? m[2] : null;
-  }
+// แปลงค่า backgroundImage "url('...')" ให้เป็น URL ธรรมดา หรือ null
+function extractUrl(bg) {
+  if (!bg || bg === 'none') return null;
+  // ถ้ามี layers หลายชั้น (comma-separated) ให้ใช้ชั้นแรกที่มี url()
+  // รองรับรูปแบบ: url("..."), url('...'), url(...)
+  const firstLayer = bg.split(',')[0].trim();
+  const m = /url\((['"]?)(.+?)\1\)/.exec(firstLayer);
+  return m ? m[2] : null;
+}
 
-  // สร้าง SVG fallback เป็น data URI (เรียบง่าย)
-  function makeBgFallback(i) {
-    const colors = ['#7f8c8d', '#95a5a6', '#8e9aa3', '#9aa5ab'];
-    const color = colors[i % colors.length];
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'><rect width='100%' height='100%' fill='${color}'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-family='Arial,Segoe UI' font-size='28' fill='#ffffff'>Background ${i+1}</text></svg>`;
-    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-  }
+// makeBgFallback: คืนค่า data URI ที่โปร่งใส (ไม่มีขอบ/พื้นหลังขาว)
+// 1x1 transparent GIF — รองรับกว้างที่สุดใน browser
+function makeBgFallback(i) {
+  // 1x1 transparent GIF (base64)
+  return 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+}
 
-  // สร้าง QR fallback (data URI)
-  function makeQrFallback(name) {
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'><rect width='100%' height='100%' rx='20' fill='#f3f4f6'/><rect x='18' y='18' width='284' height='284' rx='12' fill='white' stroke='#e5e7eb'/><text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle' font-family='Arial,Segoe UI' font-size='18' fill='#111'>QR — ${name}</text></svg>`;
-    return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-  }
+// ถ้าต้องการ fallback แบบมีสีเฉพาะ (ไม่แนะนำ ถ้ต้องการ "สีต้นฉบับเท่านั้น")
+// ให้เรียก makeBgFallbackColored(i, '#202020')
+function makeBgFallbackColored(i, color) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'><rect width='100%' height='100%' fill='${color}'/></svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
 
   /* ========== SLIDESHOW (เลื่อนขึ้นจาก assets) ========== */
   function initSlideshow() {
@@ -648,4 +650,33 @@ document.addEventListener('DOMContentLoaded', function () {
   // ค่าเริ่มต้น
   setPlatform('ig');
 })();
+
+// ล้างค่า filter / blend / inline background-layers และลบองค์ประกอบ overlay ที่มักใช้
+function sanitizeSlideElement(el) {
+  if (!el) return;
+  // เอา inline filter ออก
+  el.style.filter = '';
+  el.style.webkitFilter = '';
+  // บังคับ blend เป็นปกติ (defensive)
+  el.style.mixBlendMode = 'normal';
+  el.style.backgroundBlendMode = 'normal';
+
+  // ถ้ามี background-image หลายชั้น ให้เก็บเฉพาะชั้นแรกที่เป็น url(...) เท่านั้น
+  const computedBg = getComputedStyle(el).backgroundImage || el.style.backgroundImage || '';
+  const url = extractUrl(computedBg);
+  if (url) {
+    el.style.backgroundImage = `url("${url}")`;
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.backgroundPosition = 'center center';
+    el.style.backgroundSize = 'cover';
+  } else {
+    el.style.backgroundImage = `url("${makeBgFallback(0)}")`; // โปร่งใส
+  }
+
+  // ลบ node overlay พบบ่อย (เปลี่ยน selector ตามโครงจริงของคุณ)
+  el.querySelectorAll('.slide-overlay, .overlay, .veil, .bg-tint').forEach(n => n.remove());
+}
+
+// เรียกกับทุกสไลด์
+document.querySelectorAll('.bg-slideshow .slide').forEach(s => sanitizeSlideElement(s));
 

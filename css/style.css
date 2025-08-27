@@ -54,18 +54,28 @@ body {
   pointer-events: none;
 }
 .bg-slideshow .slide {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  opacity: 0;
-  transform: translateY(10px) scale(1.02);
-  will-change: opacity, transform;
-  animation: slide-cycle 32s linear infinite;
-  filter: saturate(1.02) contrast(1.04) brightness(0.98);
+  position: absolute;       /* ตามเดิม: วางซ้อนเต็ม container */
+  inset: 0;                 /* ครอบเต็มด้านบน/ล่าง/ซ้าย/ขวา */
+  width: 100%;              /* ครอบเต็มความกว้าง */
+  height: 100%;             /* ครอบเต็มความสูง */
+
+  background-size: cover;   /* ให้เต็มกรอบ ไม่บีบ/ยืดผิดสัดส่วน */
+  background-position: center center;  /* จัดกลางภาพ */
+
+  opacity: 1;               /* ให้แสดงเต็มที่, ไม่โปร่งใส */
+  transform: none;          /* ไม่ย่อ/ขยาย, ไม่เลื่อน, ให้ภาพ original */
+  will-change: auto;        /* ปล่อย browser จัดการปกติ */
+
+  animation: slide-cycle 32s linear infinite; /* ถ้าอยากให้ยัง animate ความเปลี่ยนภาพ ใช้ได้ แต่ animation ไม่ปรุงสี */
+
+  filter: none !important;  /* ล้าง filter ทุกชนิด, ป้องกัน saturate/brightness/contrast */
+  -webkit-filter: none !important; /* Safari */
+  mix-blend-mode: normal !important; /* ป้องกันการผสมสี */
+  background-blend-mode: normal !important; /* ป้องกัน blend overlay ใดๆ */
+
+  image-rendering: auto !important; /* ให้ browser แสดงภาพตามพิกเซลต้นฉบับ */
 }
+
 
 /* staggered delays for 4 images */
 .bg-slideshow .slide:nth-child(1) { animation-delay: 0s; }
@@ -472,3 +482,8 @@ var ov = s.querySelector('.slide-overlay'); if(ov) ov.remove();
 
 
 ========================================================================== */
+
+.slide--1 {
+  background-image: -webkit-image-set(url('bg1.jpg') 1x, url('bg1@2x.jpg') 2x);
+  background-image: image-set(url('bg1.jpg') 1x, url('bg1@2x.jpg') 2x);
+}
