@@ -5,21 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ติดต่อผู้ดูแลระบบ — KNW Check</title>
 
-  <!-- CSP ที่อนุญาตให้โหลดรูปจาก file: ด้วย (ช่วยเวลาทดสอบแบบ file://) -->
+  <!-- CSP ที่อนุญาตให้โหลดรูปจาก file: (ช่วยเวลาทดสอบแบบ file://) -->
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self';
-                 script-src 'self';
-                 style-src 'self' 'unsafe-inline';
-                 img-src 'self' https: data: blob: file:;
-                 connect-src 'self';
-                 font-src 'self';
-                 object-src 'none';
-                 base-uri 'none';
-                 frame-ancestors 'none';
-                 form-action 'self';">
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob: file:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- ป้องกันกรณี style.css หาย: ให้ .hidden และขนาดเบื้องต้นของ qr-wrap/qr-img เสมอ -->
+  <style>
+    /* ห้ามลบทิ้ง: กรณีไฟล์ css หลุด จะยังทำให้ fallback/การแสดงภาพทำงาน */
+    .hidden { display: none !important; }
+    .qr-wrap { width: 320px; height: 320px; max-width: 90%; margin: 0 auto; border-radius: 14px; overflow: hidden; display:flex; align-items:center; justify-content:center; background:#fff; }
+    .qr-img { display:block; width:100%; height:auto; object-fit:contain; border-radius:18px; padding:14px; background:#fff; box-shadow: 0 18px 44px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.04); }
+  </style>
 </head>
 <body class="contact">
   <div class="overlay contact-main">
@@ -43,11 +42,12 @@
 
           <!-- QR display -->
           <div class="qr-display" aria-live="polite">
-            <!-- qr-wrap แค่เป็นกล่องแสดงรูป -->
+            <!-- wrapper ที่เปลี่ยน class ตามแพลตฟอร์ม (ig/fb/line) -->
             <div id="qr-wrap" class="qr-wrap ig" aria-hidden="false">
+              <!-- ตั้ง src เริ่มต้นเป็น assets/qr-instagram.png (ตามคำขอ: ใช้ 'assets/' เท่านั้น) -->
               <img id="contact-qr-img"
                    class="qr-img"
-                   src=""
+                   src="assets/qr-instagram.png"
                    alt="QR Code ของผู้ดูแล"
                    width="300" height="300"
                    loading="lazy" decoding="async">
@@ -63,8 +63,8 @@
             </div>
 
             <div id="qr-fallback" class="qr-fallback hidden" role="status" aria-hidden="true" style="margin-top:12px;">
-              <div class="muted small" style="color:rgba(255,255,255,0.9); font-weight:700;">
-                ไม่พบภาพ QR — กรุณาตรวจสอบไฟล์ที่ <code>./assets/qr-*.png</code>
+              <div class="muted small" style="color:rgba(255,255,255,0.95); font-weight:700;">
+                ไม่พบภาพ QR — กรุณาตรวจสอบไฟล์ที่ <code>assets/qr-*.png</code>
               </div>
             </div>
           </div>
@@ -91,103 +91,98 @@
     </div>
   </div>
 
-  <!-- Inline script: ตั้งปี, สลับ QR และลองโหลดภาพจากหลายพาธ/ชื่อ -->
-<script>
-(function(){
-  // paths ที่จะลองหาไฟล์ (เรียงจาก priority สูง -> ต่ำ)
-  const PATHS = [
-    './assets/',
-    'assets/',
-    './public/assets/',
-    'public/assets/',
-    './',
-    ''
-  ];
+  <!-- Inline script: ตั้งปี, สลับ QR และหาไฟล์จาก 'assets/' (และบางพาธ fallback) -->
+  <script>
+  (function(){
+    // ตั้งปีใน footer
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  // ชื่อไฟล์ที่สคริปต์จะลอง (เพิ่มเผื่อตัวพิมพ์ใหญ่/underscore/.png.png/.jpg)
-  const FILE_CANDIDATES = {
-    ig:   ['qr-instagram.png','qr-instagram.PNG','qr_instagram.png','QR-Instagram.png','qr-instagram.png.png','qr-instagram.jpg'],
-    fb:   ['qr-facebook.png','qr-facebook.PNG','qr_facebook.png','QR-Facebook.png','qr-facebook.png.png','qr-facebook.jpg'],
-    line: ['qr-line.png','qr-line.PNG','qr_line.png','QR-Line.png','qr-line.png.png','qr-line.jpg']
-  };
+    // เลือก paths ตาม priority — เริ่มด้วย 'assets/' ตามคำขอ
+    const PATHS = ['assets/', 'public/assets/', './public/assets/', './', ''];
 
-  const IMG = document.getElementById('contact-qr-img');
-  const FBACK = document.getElementById('qr-fallback');
-  const WRAP = document.getElementById('qr-wrap');
-  const PLATFORM_LABEL = document.getElementById('qr-platform-label');
+    // ชื่อไฟล์ที่จะลอง (เพิ่มชื่อ/นามสกุลที่มักพบบ่อย)
+    const FILE_CANDIDATES = {
+      ig:   ['qr-instagram.png','qr-instagram.PNG','qr_instagram.png','QR-Instagram.png','qr-instagram.png.png','qr-instagram.jpg'],
+      fb:   ['qr-facebook.png','qr-facebook.PNG','qr_facebook.png','QR-Facebook.png','qr-facebook.png.png','qr-facebook.jpg'],
+      line: ['qr-line.png','qr-line.PNG','qr_line.png','QR-Line.png','qr-line.png.png','qr-line.jpg']
+    };
 
-  // helper: แสดง/ซ่อน fallback
-  function showFallback() {
-    if (IMG) IMG.style.display = 'none';
-    if (FBACK) FBACK.classList.remove('hidden');
-  }
-  function hideFallback() {
-    if (FBACK) FBACK.classList.add('hidden');
-    if (IMG) IMG.style.display = '';
-  }
+    const IMG = document.getElementById('contact-qr-img');
+    const FBACK = document.getElementById('qr-fallback');
+    const WRAP = document.getElementById('qr-wrap');
+    const PLATFORM_LABEL = document.getElementById('qr-platform-label');
 
-  // helper: ทดสอบ src โดยสร้าง Image() ชั่วคราว
-  function testSrc(src) {
-    return new Promise(resolve => {
-      const tester = new Image();
-      tester.onload = () => resolve({ok:true, src});
-      tester.onerror = () => resolve({ok:false, src});
-      tester.src = src;
-    });
-  }
-
-  // ลองไล่หา src ที่ใช้ได้จริงทีละตัว (รันแบบ async)
-  async function findWorkingSrc(platformKey) {
-    const names = FILE_CANDIDATES[platformKey] || FILE_CANDIDATES.ig;
-    const tries = [];
-    PATHS.forEach(p => names.forEach(n => tries.push(p + n)));
-
-    console.log('QR: trying', tries);
-    for (const s of tries) {
-      // testSrc จะคืน {ok:true,src} หรือ {ok:false,src}
-      const res = await testSrc(s);
-      if (res.ok) return res.src;
+    function showFallback() {
+      if (IMG) IMG.style.display = 'none';
+      if (FBACK) FBACK.classList.remove('hidden');
     }
-    return null;
-  }
-
-  // ตั้งภาพตาม platform (ig|fb|line)
-  async function setPlatform(key) {
-    // toggle ปุ่ม active
-    document.querySelectorAll('[data-show-qr]').forEach(btn => {
-      const active = btn.dataset.showQr === key;
-      btn.classList.toggle('active', active);
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
-
-    if (PLATFORM_LABEL) PLATFORM_LABEL.textContent = key === 'ig' ? 'Instagram' : key === 'fb' ? 'Facebook' : 'LINE';
-    if (WRAP) WRAP.className = 'qr-wrap ' + (key === 'ig' ? 'ig' : key === 'fb' ? 'fb' : 'line');
-
-    hideFallback();
-
-    // หาไฟล์ที่เจอจริง
-    const src = await findWorkingSrc(key);
-    if (src) {
-      console.log('QR: found', src);
-      IMG.src = src;
-      IMG.alt = 'QR Code ของผู้ดูแล (' + PLATFORM_LABEL.textContent + ')';
-      IMG.style.display = ''; // แสดงภาพ
+    function hideFallback() {
       if (FBACK) FBACK.classList.add('hidden');
-    } else {
-      console.warn('QR: no image found for', key);
-      showFallback();
+      if (IMG) IMG.style.display = '';
     }
-  }
 
-  // bind ปุ่มสลับ
-  document.querySelectorAll('[data-show-qr]').forEach(btn => {
-    btn.addEventListener('click', () => setPlatform(btn.dataset.showQr));
-  });
+    // ทดสอบ src โดยสร้าง Image ชั่วคราว (ไม่เปลี่ยน IMG หลักทันที)
+    function testSrc(src) {
+      return new Promise(resolve => {
+        const tester = new Image();
+        tester.onload = () => resolve({ok:true, src});
+        tester.onerror = () => resolve({ok:false, src});
+        tester.src = src;
+      });
+    }
 
-  // โหลดเริ่มต้น
-  setPlatform('ig');
+    // ไล่หา src ที่ใช้งานได้จริง
+    async function findWorkingSrc(platformKey) {
+      const names = FILE_CANDIDATES[platformKey] || FILE_CANDIDATES.ig;
+      const tries = [];
+      PATHS.forEach(p => names.forEach(n => tries.push(p + n)));
 
-  // debug: ให้สามารถเรียกจาก console ได้
-  window._knw_setQR = setPlatform;
-})();
-</script>
+      console.log('QR: trying', tries);
+      for (const s of tries) {
+        const res = await testSrc(s);
+        if (res.ok) return res.src;
+      }
+      return null;
+    }
+
+    // ตั้งภาพตาม platform และปรับ UI ปุ่ม
+    async function setPlatform(key) {
+      document.querySelectorAll('[data-show-qr]').forEach(btn => {
+        const active = btn.dataset.showQr === key;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      if (PLATFORM_LABEL) PLATFORM_LABEL.textContent = key === 'ig' ? 'Instagram' : key === 'fb' ? 'Facebook' : 'LINE';
+      if (WRAP) WRAP.className = 'qr-wrap ' + (key === 'ig' ? 'ig' : key === 'fb' ? 'fb' : 'line');
+
+      hideFallback();
+
+      const src = await findWorkingSrc(key);
+      if (src) {
+        console.log('QR: found', src);
+        IMG.src = src;
+        IMG.alt = 'QR Code ของผู้ดูแล (' + PLATFORM_LABEL.textContent + ')';
+        IMG.style.display = '';
+        if (FBACK) FBACK.classList.add('hidden');
+      } else {
+        console.warn('QR: no image found for', key);
+        showFallback();
+      }
+    }
+
+    // ผูกปุ่มสลับ
+    document.querySelectorAll('[data-show-qr]').forEach(btn => {
+      btn.addEventListener('click', () => setPlatform(btn.dataset.showQr));
+    });
+
+    // โหลดค่าเริ่มต้น
+    setPlatform('ig');
+
+    // ให้เรียกจาก console ได้สะดวกเพื่อทดสอบ: window._knw_setQR('fb');
+    window._knw_setQR = setPlatform;
+  })();
+  </script>
+</body>
+</html>
