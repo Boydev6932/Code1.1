@@ -7,27 +7,30 @@
 (function () {
   'use strict';
 
-    function initSlideshow(){
+  /* ---------- SLIDESHOW ---------- */
+  function initSlideshow() {
     const slides = document.querySelectorAll('.bg-slideshow .slide');
-    if(!slides || slides.length === 0) return;
+    if (!slides || slides.length === 0) return;
 
     let current = 0;
-    slides.forEach((s,i) => {
+
+    slides.forEach((s, i) => {
       s.style.position = 'absolute';
       s.style.top = 0;
       s.style.left = 0;
       s.style.width = '100%';
       s.style.height = '100%';
-      s.style.objectFit = 'cover';
+      s.style.backgroundSize = 'cover';
+      s.style.backgroundPosition = 'center';
       s.style.transition = 'opacity 1s ease-in-out';
       s.style.opacity = i === 0 ? 1 : 0;
     });
 
-    setInterval(()=>{
+    setInterval(() => {
       slides[current].style.opacity = 0;
       current = (current + 1) % slides.length;
       slides[current].style.opacity = 1;
-    }, 4000); // เปลี่ยนทุก 4 วินาที
+    }, 4000);
   }
 
   document.addEventListener('DOMContentLoaded', initSlideshow);
@@ -72,7 +75,7 @@
   const onReady = fn => { if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', fn); else fn(); };
   const normalize = s => (s||'').toString().trim().replace(/\s+/g,' ').toLowerCase();
 
-  // Levenshtein (for fuzzy)
+  // Levenshtein (fuzzy search)
   function levenshtein(a,b){
     const m=a.length,n=b.length;if(!m)return n;if(!n)return m;
     const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
@@ -88,7 +91,7 @@
   }
   const similarity=(q,t)=>{const L=Math.max(q.length,t.length)||1;return 1-(levenshtein(q,t)/L);};
 
-  /* ---------- fallback makers ---------- */
+  /* ---------- FALLBACK MAKERS ---------- */
   function makeQrFallback(name){
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'><rect width='100%' height='100%' rx='20' fill='#f3f4f6'/><rect x='18' y='18' width='284' height='284' rx='12' fill='white' stroke='#e5e7eb'/><text x='50%' y='52%' dominant-baseline='middle' text-anchor='middle' font-family='Arial,Segoe UI' font-size='18' fill='#111'>QR — ${name}</text></svg>`;
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
@@ -185,11 +188,9 @@
 
     // slideshow fallback
     const slides=document.querySelectorAll('.bg-slideshow .slide');
-    let anyLoaded=false;
-    slides.forEach((img,i)=>{
-      img.addEventListener('error',()=>{img.src=makeBgFallback(i);});
-      img.addEventListener('load',()=>{anyLoaded=true;document.body.classList.add('has-bg-images');});
-      if(img.complete && img.naturalWidth>0){anyLoaded=true;document.body.classList.add('has-bg-images');}
+    slides.forEach((div,i)=>{
+      const bg=div.style.backgroundImage;
+      if(!bg){div.style.backgroundImage=`url('${makeBgFallback(i)}')`;}
     });
   }
 
@@ -214,10 +215,14 @@
       const raw=platforms[key].file;
       const safe=safeUrl(raw)||raw;
       qrImg.onerror=()=>{qrImg.onerror=null;qrImg.src=makeQrFallback(platforms[key].label);};
-      qrImg.src=safe;
+      qrImg.src=platforms[key].file;
       if(labelEl)labelEl.textContent=platforms[key].label;
-      buttons.forEach(b=>{const active=b.getAttribute('data-show-qr')===key;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
-      if(card){card.classList.remove('accent-ig','accent-fb','accent-line');if(key==='ig')card.classList.add('accent-ig');if(key==='fb')card.classList.add('accent-fb');if(key==='line')card.classList.add('accent-line');}
+      buttons.forEach(b=>{
+        const active=b.getAttribute('data-show-qr')===key;
+        b.classList.toggle('active',active);
+        b.setAttribute('aria-pressed',String(active));
+      });
+      if(card){card.classList.remove('accent-ig','accent-fb','accent-line');card.classList.add('accent-'+key);}
     }
 
     buttons.forEach(btn=>btn.addEventListener('click',()=>{setPlatform(btn.getAttribute('data-show-qr'));try{qrImg.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}}));
@@ -226,12 +231,14 @@
 
   /* ---------- BOOT ---------- */
   onReady(()=>{
+    try{initSlideshow();}catch(e){console.error('slideshow error',e);}
     try{initIndex();}catch(e){console.error('initIndex error',e);}
     try{initContact();}catch(e){console.error('initContact error',e);}
     const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();
   });
 
 })();
+
 
 
 // js/script.js — minimal shared behaviors for index & contact pages
