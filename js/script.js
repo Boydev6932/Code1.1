@@ -407,3 +407,47 @@ document.addEventListener('DOMContentLoaded', function () {
   //console.log('QR base used:', base);
 });
 
+// js/script.js
+(() => {
+  const img = document.getElementById('contact-qr-img');
+  const wrap = document.getElementById('qr-wrap');
+  const label = document.getElementById('qr-platform-label');
+  const fallback = document.getElementById('qr-fallback');
+
+  const MAP = {
+    ig:   { file: 'qr-instagram.png', label: 'Instagram', cls: 'ig' },
+    fb:   { file: 'qr-facebook.png',   label: 'Facebook',  cls: 'fb' },
+    line: { file: 'qr-line.png',       label: 'LINE',      cls: 'line' }
+  };
+
+  // ใช้ path สัมพันธ์กับไฟล์ HTML เสมอ
+  const ASSETS = './assets/';
+
+  function setPlatform(key) {
+    const m = MAP[key];
+    if (!m) return;
+
+    // สลับปุ่ม active
+    document.querySelectorAll('.btn.btn-ghost').forEach(b => {
+      b.classList.toggle('active', b.dataset.showQr === key);
+      b.setAttribute('aria-pressed', b.dataset.showQr === key ? 'true' : 'false');
+    });
+
+    // อัปเดต UI
+    wrap.className = `qr-wrap ${m.cls}`;
+    label.textContent = m.label;
+
+    // รีเซ็ต fallback + แสดงรูป
+    fallback.classList.add('hidden');
+    img.style.display = '';
+    img.src = ASSETS + m.file;    // ให้โหลดจาก ./assets/ เสมอ
+  }
+
+  // bind events
+  document.querySelectorAll('[data-show-qr]').forEach(btn => {
+    btn.addEventListener('click', () => setPlatform(btn.dataset.showQr));
+  });
+
+  // ค่าเริ่มต้น
+  setPlatform('ig');
+})();
