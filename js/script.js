@@ -7,6 +7,31 @@
 (function () {
   'use strict';
 
+    function initSlideshow(){
+    const slides = document.querySelectorAll('.bg-slideshow .slide');
+    if(!slides || slides.length === 0) return;
+
+    let current = 0;
+    slides.forEach((s,i) => {
+      s.style.position = 'absolute';
+      s.style.top = 0;
+      s.style.left = 0;
+      s.style.width = '100%';
+      s.style.height = '100%';
+      s.style.objectFit = 'cover';
+      s.style.transition = 'opacity 1s ease-in-out';
+      s.style.opacity = i === 0 ? 1 : 0;
+    });
+
+    setInterval(()=>{
+      slides[current].style.opacity = 0;
+      current = (current + 1) % slides.length;
+      slides[current].style.opacity = 1;
+    }, 4000); // เปลี่ยนทุก 4 วินาที
+  }
+
+  document.addEventListener('DOMContentLoaded', initSlideshow);
+
   /* ---------- DATA ---------- */
   const names = [
     "กบิลพัสดุ์​ แสงชัย","แทนคุณ จันงาม","สุรบดี ทองสุก","นราวิชญ์ ไชยหันขวา",
