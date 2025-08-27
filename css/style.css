@@ -336,3 +336,34 @@ transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 
 
 /* จบบล็อก CSS additions */
+
+/* ----------------------------
+   Patch: ensure buttons clickable
+   ---------------------------- */
+.card { position: relative; z-index: 2; pointer-events: auto; }
+
+/* make action area above other decorations */
+.card-actions { position: relative; z-index: 3; pointer-events: auto; }
+
+/* polish for interactive elements */
+.btn-ghost {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* explicit ensure qr area doesn't overlay the buttons */
+.qr-wrap { pointer-events: auto; z-index: 1; }
+
+/* Ensure clickable images don't swallow events unintentionally */
+.qr-img { pointer-events: auto; display:block; }
+
+/* If any overlay accidentally sits on top, use this debug helper (ลบออกถ้าทุกอย่างเรียบร้อย) */
+/* .overlay { outline: 1px dashed rgba(255,255,255,0.06); } */
+
+/* --- patch: ensure card-actions and buttons are clickable --- */
+.card { position: relative; z-index: 2; }
+.card-actions { position: relative; z-index: 4; }
+.btn-ghost { pointer-events: auto; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+.qr-wrap { pointer-events: auto; z-index: 1; }
