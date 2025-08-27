@@ -5,28 +5,28 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ติดต่อผู้ดูแลระบบ — KNW Check</title>
 
-  <!-- CSP ที่อนุญาตให้โหลดรูปจาก file: (ช่วยเวลาทดสอบแบบ file://) -->
+  <!-- CSP (อนุญาต img จาก file: สำหรับทดสอบ local ถ้าต้องการ) -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob: file:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self';">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
   <link rel="stylesheet" href="css/style.css">
 
-  <!-- ป้องกันกรณี style.css หาย: ให้ .hidden และขนาดเบื้องต้นของ qr-wrap/qr-img เสมอ -->
   <style>
-    /* ห้ามลบทิ้ง: กรณีไฟล์ css หลุด จะยังทำให้ fallback/การแสดงภาพทำงาน */
-    .hidden { display: none !important; }
-    .qr-wrap { width: 320px; height: 320px; max-width: 90%; margin: 0 auto; border-radius: 14px; overflow: hidden; display:flex; align-items:center; justify-content:center; background:#fff; }
-    .qr-img { display:block; width:100%; height:auto; object-fit:contain; border-radius:18px; padding:14px; background:#fff; box-shadow: 0 18px 44px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.04); }
+    /* สำรอง: ถ้า style.css หาย */
+    .hidden { display:none !important; }
+    .qr-wrap { width:320px; height:320px; max-width:90%; margin:0 auto; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; }
+    .qr-img { display:block; width:100%; height:auto; object-fit:contain; border-radius:18px; padding:14px; background:#fff; box-shadow:0 18px 44px rgba(0,0,0,0.15); border:1px solid rgba(0,0,0,0.04); }
   </style>
 </head>
 <body class="contact">
   <div class="overlay contact-main">
     <div class="card contact-card" aria-labelledby="contact-heading">
       <div class="logos" aria-hidden="false">
+        <!-- โลโก้ภายนอก -->
         <img src="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2-Logo-PNG-color.png?resize=947%2C949&ssl=1"
              alt="โลโก้ แก่นนครวิทยาลัย" width="70" height="70" loading="lazy" decoding="async">
-        <img src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t1.15752-9/532944842_2000679387359224_5786569609575666025_n.png?stp=dst-png_p480x480&_nc_cat=109&ccb=1-7&_nc_sid=0024fc&_nc_ohc=v5YPLokYHLEQ7kNvwH1ja3F&_nc_oc=AdnlHs5L6L9gX79wuenMc_qbwDSBzWdgU2EJXS_4TewN5wr2nK9-vjRyuCKMms-yZbP39xSnqENHT5TB_Q3TH6fu&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fkkc3-1.fna&oh=03_Q7cD3AFBevARtScDVGqIb7cflBSWmP2-ZeDEGIyCBi-HyAE_AA&oe=68D52AE7"
+        <img src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t1.15752-9/532944842_2000679387359224_5786569609575666025_n.png"
              alt="โลโก้ ROTC" width="60" height="80" loading="lazy" decoding="async">
       </div>
 
@@ -40,17 +40,10 @@
             <button class="btn btn-ghost" data-show-qr="line" aria-pressed="false">แสดง QR — LINE</button>
           </div>
 
-          <!-- QR display -->
           <div class="qr-display" aria-live="polite">
-            <!-- wrapper ที่เปลี่ยน class ตามแพลตฟอร์ม (ig/fb/line) -->
             <div id="qr-wrap" class="qr-wrap ig" aria-hidden="false">
-              <!-- ตั้ง src เริ่มต้นเป็น assets/qr-instagram.png (ตามคำขอ: ใช้ 'assets/' เท่านั้น) -->
-              <img id="contact-qr-img"
-                   class="qr-img"
-                   src="assets/qr-instagram.png"
-                   alt="QR Code ของผู้ดูแล"
-                   width="300" height="300"
-                   loading="lazy" decoding="async">
+              <!-- โหลดจาก assets/ เฉพาะที่เดียว -->
+              <img id="contact-qr-img" class="qr-img" src="assets/qr-instagram.png" alt="QR Code ของผู้ดูแล" width="300" height="300" loading="lazy" decoding="async">
             </div>
 
             <div class="qr-caption">สแกนเพื่อเริ่มแชท — <span id="qr-platform-label">Instagram</span></div>
@@ -68,21 +61,8 @@
               </div>
             </div>
           </div>
-          <!-- /QR display -->
 
-          <div class="contact-extra">
-            <p class="muted small">มาแอบคุยกันเด้อ แอดเหงา</p>
-            <ul class="contact-list">
-              <li><strong>ผู้ดูแล:</strong> ทีมเทคนิค KNW Check</li>
-              <li><strong>เวลาทำการ:</strong> จันทร์–ศุกร์ 08:30–21:30</li>
-              <li><strong>หมายเหตุ:</strong> หากต้องการให้ทีมช่วยแก้ไขข้อมูล กรุณาแนบหลักฐานและติดต่อผ่านช่องทางด้านบน</li>
-            </ul>
-          </div>
         </section>
-
-        <div class="contact-footer">
-          <a class="back-home" href="./index.html"><span class="ico">←</span> ย้อนกลับหน้าหลัก</a>
-        </div>
       </main>
 
       <footer class="site-footer">
@@ -91,21 +71,20 @@
     </div>
   </div>
 
-  <!-- Inline script: ตั้งปี, สลับ QR และหาไฟล์จาก 'assets/' (และบางพาธ fallback) -->
   <script>
   (function(){
-    // ตั้งปีใน footer
+    // ใส่ปี
     const yearEl = document.getElementById('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // เลือก paths ตาม priority — เริ่มด้วย 'assets/' ตามคำขอ
-    const PATHS = ['assets/', 'public/assets/', './public/assets/', './', ''];
+    // **ใช้ assets/ เท่านั้น** (ตามคำขอ)
+    const PATHS = ['assets/'];
 
-    // ชื่อไฟล์ที่จะลอง (เพิ่มชื่อ/นามสกุลที่มักพบบ่อย)
+    // ชื่อไฟล์ที่สคริปต์จะลองภายใน assets/
     const FILE_CANDIDATES = {
-      ig:   ['qr-instagram.png','qr-instagram.PNG','qr_instagram.png','QR-Instagram.png','qr-instagram.png.png','qr-instagram.jpg'],
-      fb:   ['qr-facebook.png','qr-facebook.PNG','qr_facebook.png','QR-Facebook.png','qr-facebook.png.png','qr-facebook.jpg'],
-      line: ['qr-line.png','qr-line.PNG','qr_line.png','QR-Line.png','qr-line.png.png','qr-line.jpg']
+      ig:   ['qr-instagram.png','qr-instagram.PNG','qr_instagram.png','qr-instagram.jpg'],
+      fb:   ['qr-facebook.png','qr-facebook.PNG','qr_facebook.png','qr-facebook.jpg'],
+      line: ['qr-line.png','qr-line.PNG','qr_line.png','qr-line.jpg']
     };
 
     const IMG = document.getElementById('contact-qr-img');
@@ -113,54 +92,42 @@
     const WRAP = document.getElementById('qr-wrap');
     const PLATFORM_LABEL = document.getElementById('qr-platform-label');
 
-    function showFallback() {
-      if (IMG) IMG.style.display = 'none';
-      if (FBACK) FBACK.classList.remove('hidden');
-    }
-    function hideFallback() {
-      if (FBACK) FBACK.classList.add('hidden');
-      if (IMG) IMG.style.display = '';
-    }
+    function showFallback(){ if (IMG) IMG.style.display='none'; if (FBACK) FBACK.classList.remove('hidden'); }
+    function hideFallback(){ if (FBACK) FBACK.classList.add('hidden'); if (IMG) IMG.style.display=''; }
 
-    // ทดสอบ src โดยสร้าง Image ชั่วคราว (ไม่เปลี่ยน IMG หลักทันที)
-    function testSrc(src) {
-      return new Promise(resolve => {
-        const tester = new Image();
-        tester.onload = () => resolve({ok:true, src});
-        tester.onerror = () => resolve({ok:false, src});
-        tester.src = src;
+    function testSrc(src){
+      return new Promise(resolve=>{
+        const t = new Image();
+        t.onload = ()=>resolve({ok:true,src});
+        t.onerror = ()=>resolve({ok:false,src});
+        t.src = src;
       });
     }
 
-    // ไล่หา src ที่ใช้งานได้จริง
-    async function findWorkingSrc(platformKey) {
+    async function findWorkingSrc(platformKey){
       const names = FILE_CANDIDATES[platformKey] || FILE_CANDIDATES.ig;
       const tries = [];
       PATHS.forEach(p => names.forEach(n => tries.push(p + n)));
-
       console.log('QR: trying', tries);
-      for (const s of tries) {
-        const res = await testSrc(s);
-        if (res.ok) return res.src;
+      for (const s of tries){
+        const r = await testSrc(s);
+        if (r.ok) return r.src;
       }
       return null;
     }
 
-    // ตั้งภาพตาม platform และปรับ UI ปุ่ม
-    async function setPlatform(key) {
-      document.querySelectorAll('[data-show-qr]').forEach(btn => {
-        const active = btn.dataset.showQr === key;
-        btn.classList.toggle('active', active);
-        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    async function setPlatform(key){
+      document.querySelectorAll('[data-show-qr]').forEach(btn=>{
+        const on = btn.dataset.showQr === key;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
-
-      if (PLATFORM_LABEL) PLATFORM_LABEL.textContent = key === 'ig' ? 'Instagram' : key === 'fb' ? 'Facebook' : 'LINE';
-      if (WRAP) WRAP.className = 'qr-wrap ' + (key === 'ig' ? 'ig' : key === 'fb' ? 'fb' : 'line');
+      if (PLATFORM_LABEL) PLATFORM_LABEL.textContent = key==='ig' ? 'Instagram' : key==='fb' ? 'Facebook' : 'LINE';
+      if (WRAP) WRAP.className = 'qr-wrap ' + (key==='ig' ? 'ig' : key==='fb' ? 'fb' : 'line');
 
       hideFallback();
-
       const src = await findWorkingSrc(key);
-      if (src) {
+      if (src){
         console.log('QR: found', src);
         IMG.src = src;
         IMG.alt = 'QR Code ของผู้ดูแล (' + PLATFORM_LABEL.textContent + ')';
@@ -172,15 +139,13 @@
       }
     }
 
-    // ผูกปุ่มสลับ
-    document.querySelectorAll('[data-show-qr]').forEach(btn => {
-      btn.addEventListener('click', () => setPlatform(btn.dataset.showQr));
+    document.querySelectorAll('[data-show-qr]').forEach(btn=>{
+      btn.addEventListener('click', ()=> setPlatform(btn.dataset.showQr));
     });
 
-    // โหลดค่าเริ่มต้น
+    // เริ่มต้น
     setPlatform('ig');
 
-    // ให้เรียกจาก console ได้สะดวกเพื่อทดสอบ: window._knw_setQR('fb');
     window._knw_setQR = setPlatform;
   })();
   </script>
