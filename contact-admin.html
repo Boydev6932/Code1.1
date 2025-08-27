@@ -36,7 +36,7 @@
         <!-- โลโก้ภายนอก -->
         <img src="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2-Logo-PNG-color.png?resize=947%2C949&ssl=1"
              alt="โลโก้ แก่นนครวิทยาลัย" width="70" height="70" loading="lazy" decoding="async">
-        <img src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t1.15752-9/532944842_2000679387359224_5786569609575666025_n.png"
+        <img src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t1.15752-9/532944842_2000679387359224_5786569609575666025_n.png?stp=dst-png_p480x480&_nc_cat=109&ccb=1-7&_nc_sid=0024fc&_nc_ohc=v5YPLokYHLEQ7kNvwH1ja3F&_nc_oc=AdnlHs5L6L9gX79wuenMc_qbwDSBzWdgU2EJXS_4TewN5wr2nK9-vjRyuCKMms-yZbP39xSnqENHT5TB_Q3TH6fu&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fkkc3-1.fna&oh=03_Q7cD3AFBevARtScDVGqIb7cflBSWmP2-ZeDEGIyCBi-HyAE_AA&oe=68D52AE7"
              alt="โลโก้ ROTC" width="60" height="80" loading="lazy" decoding="async">
       </div>
 
@@ -96,110 +96,107 @@
 
   <!-- JavaScript: วางไว้ก่อนปิด body เพื่อให้ DOM โหลดเสร็จก่อนทำงาน -->
   <script>
-  (function(){
-    // ใส่ปี
-    const yearEl = document.getElementById('year');
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
+(function(){
+  // ใส่ปี
+  const yearEl = document.getElementById('year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // Paths & candidates: **วางไฟล์ลงใน assets/**
-    const PATHS = ['assets/'];
-    const FILE_CANDIDATES = {
-      ig:   ['qr-instagram.png','qr-instagram.PNG','qr_instagram.png','qr-instagram.jpg'],
-      fb:   ['qr-facebook.png','qr-facebook.PNG','qr_facebook.png','qr-facebook.jpg'],
-      line: ['qr-line.png','qr-line.PNG','qr_line.png','qr-line.jpg']
-    };
+  // Paths & candidates: **วางไฟล์ลงใน assets/**
+  const PATHS = ['assets/'];
+  const FILE_CANDIDATES = {
+    ig:   ['qr-instagram.png','qr-instagram.PNG','qr_instagram.png','qr-instagram.jpg'],
+    fb:   ['qr-facebook.png','qr-facebook.PNG','qr_facebook.png','qr-facebook.jpg'],
+    line: ['qr-line.png','qr-line.PNG','qr_line.png','qr-line.jpg']
+  };
 
-    const IMG = document.getElementById('contact-qr-img');
-    const FBACK = document.getElementById('qr-fallback');
-    const WRAP = document.getElementById('qr-wrap');
-    const PLATFORM_LABEL = document.getElementById('qr-platform-label');
+  const IMG = document.getElementById('contact-qr-img');
+  const FBACK = document.getElementById('qr-fallback');
+  const WRAP = document.getElementById('qr-wrap');
+  const PLATFORM_LABEL = document.getElementById('qr-platform-label');
 
-    // cancellation guard for async image checks
-    let latestSetId = 0;
+  // cancellation guard for async image checks
+  let latestSetId = 0;
 
-    function showFallback(){ if (IMG) IMG.style.display='none'; if (FBACK) { FBACK.classList.remove('hidden'); FBACK.setAttribute('aria-hidden','false'); } }
-    function hideFallback(){ if (FBACK) { FBACK.classList.add('hidden'); FBACK.setAttribute('aria-hidden','true'); } if (IMG) IMG.style.display=''; }
+  function showFallback(){ if (IMG) IMG.style.display='none'; if (FBACK) { FBACK.classList.remove('hidden'); FBACK.setAttribute('aria-hidden','false'); } }
+  function hideFallback(){ if (FBACK) { FBACK.classList.add('hidden'); FBACK.setAttribute('aria-hidden','true'); } if (IMG) IMG.style.display=''; }
 
-    function testSrc(src){
-      return new Promise(resolve=>{
-        const t = new Image();
-        t.onload = ()=>resolve({ok:true,src});
-        t.onerror = ()=>resolve({ok:false,src});
-        t.src = src;
-      });
-    }
-
-    async function findWorkingSrc(platformKey){
-      const names = FILE_CANDIDATES[platformKey] || FILE_CANDIDATES.ig;
-      const tries = [];
-      PATHS.forEach(p => names.forEach(n => tries.push(p + n)));
-
-      for (const s of tries){
-        try{
-          const r = await testSrc(s);
-          if (r.ok) return r.src;
-        }catch(e){ /* ignore */ }
-      }
-      return null;
-    }
-
-    function updatePlatformButtons(activeKey){
-      document.querySelectorAll('[data-show-qr]').forEach(btn=>{
-        const on = btn.dataset.showQr === activeKey;
-        btn.classList.toggle('active', on);
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-    }
-
-    function labelFor(key){ return key==='ig' ? 'Instagram' : key==='fb' ? 'Facebook' : 'LINE'; }
-
-    async function setPlatform(key){
-      const myId = ++latestSetId;
-      updatePlatformButtons(key);
-      if (PLATFORM_LABEL) PLATFORM_LABEL.textContent = labelFor(key);
-      if (WRAP) WRAP.className = 'qr-wrap ' + (key==='ig' ? 'ig' : key==='fb' ? 'fb' : 'line');
-
-      hideFallback();
-
-      // subtle loading state
-      if (IMG){ IMG.style.opacity = '0.6'; IMG.style.filter = 'blur(1px) grayscale(.02)'; }
-
-      const src = await findWorkingSrc(key);
-
-      // abort if another call happened
-      if (myId !== latestSetId) return;
-
-      if (src){
-        if (IMG){
-          IMG.src = src;
-          IMG.alt = 'QR Code ของผู้ดูแล (' + labelFor(key) + ')';
-          IMG.style.display = '';
-          IMG.style.opacity = '';
-          IMG.style.filter = '';
-        }
-        if (FBACK) FBACK.classList.add('hidden');
-      } else {
-        if (IMG) IMG.style.opacity = '';
-        if (FBACK) FBACK.classList.remove('hidden');
-        if (IMG) IMG.style.display = 'none';
-      }
-    }
-
-    // Wire events: ให้ปุ่ม 3 ปุ่มเลือกแพลตฟอร์มได้จริง
-    document.querySelectorAll('[data-show-qr]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const key = btn.dataset.showQr;
-        setPlatform(key);
-      });
+  function testSrc(src){
+    return new Promise(resolve=>{
+      const t = new Image();
+      t.onload = ()=>resolve({ok:true,src});
+      t.onerror = ()=>resolve({ok:false,src});
+      t.src = src;
     });
+  }
 
-    // initial render (เริ่มด้วย IG)
-    setPlatform('ig');
+  async function findWorkingSrc(platformKey){
+    const names = FILE_CANDIDATES[platformKey] || FILE_CANDIDATES.ig;
+    const tries = [];
+    PATHS.forEach(p => names.forEach(n => tries.push(p + n)));
 
-    // expose for debugging / programmatic control
-    window._knw_setQR = setPlatform;
+    for (const s of tries){
+      try{
+        const r = await testSrc(s);
+        if (r.ok) return r.src;
+      }catch(e){ /* ignore */ }
+    }
+    return null;
+  }
 
-  })();
-  </script>
-</body>
-</html>
+  function updatePlatformButtons(activeKey){
+    document.querySelectorAll('[data-show-qr]').forEach(btn=>{
+      const on = btn.dataset.showQr === activeKey;
+      btn.classList.toggle('active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  function labelFor(key){ return key==='ig' ? 'Instagram' : key==='fb' ? 'Facebook' : 'LINE'; }
+
+  async function setPlatform(key){
+    const myId = ++latestSetId;
+    updatePlatformButtons(key);
+    if (PLATFORM_LABEL) PLATFORM_LABEL.textContent = labelFor(key);
+    if (WRAP) WRAP.className = 'qr-wrap ' + (key==='ig' ? 'ig' : key==='fb' ? 'fb' : 'line');
+
+    hideFallback();
+
+    // subtle loading state
+    if (IMG){ IMG.style.opacity = '0.6'; IMG.style.filter = 'blur(1px) grayscale(.02)'; }
+
+    const src = await findWorkingSrc(key);
+
+    // abort if another call happened
+    if (myId !== latestSetId) return;
+
+    if (src){
+      if (IMG){
+        IMG.src = src;
+        IMG.alt = 'QR Code ของผู้ดูแล (' + labelFor(key) + ')';
+        IMG.style.display = '';
+        IMG.style.opacity = '';
+        IMG.style.filter = '';
+      }
+      if (FBACK) FBACK.classList.add('hidden');
+    } else {
+      if (IMG) IMG.style.opacity = '';
+      if (FBACK) FBACK.classList.remove('hidden');
+      if (IMG) IMG.style.display = 'none';
+    }
+  }
+
+  // Wire events: ให้ปุ่ม 3 ปุ่มเลือกแพลตฟอร์มได้จริง
+  document.querySelectorAll('[data-show-qr]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.dataset.showQr;
+      setPlatform(key);
+    });
+  });
+
+  // initial render (เริ่มด้วย IG)
+  setPlatform('ig');
+
+  // expose for debugging / programmatic control
+  window._knw_setQR = setPlatform;
+
+})();
