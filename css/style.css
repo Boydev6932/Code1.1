@@ -264,3 +264,28 @@ select{
 
 /* focus visible for accessibility */
 :focus-visible { outline: 3px solid rgba(79,70,229,0.18); outline-offset: 3px; border-radius: 8px; }
+
+/* ช่วยให้ QR image แสดงเต็มกรอบและไม่หดเป็นไอคอนเล็ก */
+.qr-wrap {
+  width: 320px;              /* ปรับตามที่ต้องการ */
+  height: 320px;
+  max-width: 90%;
+  margin: 0 auto;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff; /* ถ้าคุณใช้พื้นหลังเฉพาะของกรอบ ให้ปรับ */
+}
+
+/* ให้ภาพขยายเต็มกรอบ ไม่ถูกบีบ/ยืดผิดสัดส่วน */
+.qr-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* ถ้า .hidden ยังไม่ถูกนิยามที่อื่น ให้เพิ่ม */
+.hidden { display: none !important; }
