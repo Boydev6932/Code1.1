@@ -521,3 +521,79 @@ var ov = s.querySelector('.slide-overlay'); if(ov) ov.remove();
   transition: top 2000ms ease-in-out; /* อย่าลืมให้ตรงกับ TRANSITION_MS ใน JS */
   will-change: top;
 }
+
+/* ========================================================================== 
+   FINAL PATCH: bg1.jpg–bg4.jpg original clarity (no veil/filter) 
+   Place at the END of css/style.css
+   ========================================================================== */
+
+/* 1) ล้าง veil/blur ของ overlay บนหน้า index */
+body.index .overlay {
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 2) bg-slideshow ต้องแสดงภาพเต็มหน้าจอ (fixed, behind content) */
+.bg-slideshow {
+  position: fixed !important;
+  inset: 0 !important;             /* top/right/bottom/left = 0 */
+  z-index: -1 !important;          /* อยู่ด้านหลัง content */
+  overflow: hidden !important;
+  pointer-events: none !important;
+  background: transparent !important;
+}
+
+/* 3) ล้าง filter, blend-mode, pseudo-element ใดๆ ที่เคยถูกใส่ */
+.bg-slideshow,
+.bg-slideshow .slide {
+  filter: none !important;
+  -webkit-filter: none !important;
+  mix-blend-mode: normal !important;
+  background-blend-mode: normal !important;
+}
+
+.bg-slideshow::before,
+.bg-slideshow::after,
+.bg-slideshow .slide::before,
+.bg-slideshow .slide::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+/* 4) slide แต่ละภาพต้องเต็มจอ คมชัด ไม่ถูกบีบ/เบลอ */
+.bg-slideshow .slide {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  opacity: 1 !important;
+  transform: none !important;
+  will-change: auto !important;
+  transition: opacity 1.6s ease-in-out !important;
+  image-rendering: auto !important;
+}
+
+/* 5) animation แบบ crossfade (ไม่แต่งสี, ไม่ใส่หมอก) */
+@keyframes slide-cycle {
+  0%   { opacity: 0; }
+  5%   { opacity: 1; }
+  25%  { opacity: 1; }
+  30%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+.bg-slideshow .slide:nth-child(1) { animation: slide-cycle 32s infinite; animation-delay: 0s; }
+.bg-slideshow .slide:nth-child(2) { animation: slide-cycle 32s infinite; animation-delay: 8s; }
+.bg-slideshow .slide:nth-child(3) { animation: slide-cycle 32s infinite; animation-delay: 16s; }
+.bg-slideshow .slide:nth-child(4) { animation: slide-cycle 32s infinite; animation-delay: 24s; }
+
+/* 6) เคารพ reduced-motion (ไม่ให้ animation ถ้าผู้ใช้ปิด motion) */
+@media (prefers-reduced-motion: reduce) {
+  .bg-slideshow .slide { animation: none !important; opacity: 1 !important; }
+}
