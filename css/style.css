@@ -108,25 +108,32 @@ body {
 /* ========================================================================== 
    OVERLAY 
    ========================================================================== */
+/* ========== OVERLAY DEFAULT (ใช้เฉพาะ contact เท่านั้น) ========== */
 .overlay {
-  background-color: rgba(255,255,255,0.92);
-  backdrop-filter: blur(6px) saturate(1.05);
   padding: 36px 18px;
   min-height: 100vh;
   display: flex;
   align-items: flex-start;
   justify-content: center;
 }
+
+/* ========== CONTACT PAGE (ยังมี overlay มืดไว้ได้) ========== */
 body.contact .overlay {
   background: linear-gradient(180deg, rgba(8,12,22,0.65), rgba(6,9,18,0.72));
   align-items: center;
 }
+
+/* ========== INDEX PAGE (ห้ามบังภาพพื้นหลัง) ========== */
 body.index .overlay {
-  background-color: transparent !important;
-  background-image: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  background: none !important;               /* ❌ ไม่มีสี ไม่มีไล่เฉด */
+  background-color: transparent !important;  /* ❌ ไม่มีสีขาวบัง */
+  background-image: none !important;         /* ❌ ตัดภาพซ้อน */
+  backdrop-filter: none !important;          /* ❌ ไม่มีเบลอ */
+  -webkit-backdrop-filter: none !important;  /* ❌ รองรับ Safari */
+  box-shadow: none !important;               /* ❌ กันเงา */
+  filter: none !important;                   /* ❌ กันฟิลเตอร์อื่นๆ */
 }
+
 
 /* ========================================================================== 
    INDEX PAGE (search)
