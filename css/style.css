@@ -100,19 +100,19 @@ body.index:not(.has-bg-images) { background: linear-gradient(180deg,#f6f7fb,#eef
 }
 
 /* ========== OVERLAY ========== */
-.overlay {
-  background-color: rgba(255,255,255,0.92);
-  backdrop-filter: blur(6px) saturate(1.05);
-  padding: 36px 18px;
-  min-height: 100vh;
-  box-sizing: border-box;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-}
-body.contact .overlay {
-  background: linear-gradient(180deg, rgba(8,12,22,0.65), rgba(6,9,18,0.72));
-  align-items: center;
+/* ===== PATCH: remove white veil only on index page (preserve contact page) ===== */
+body.index .overlay {
+  background-color: transparent !important;      /* ล้างสีขาวทับภาพ */
+  backdrop-filter: none !important;               /* หยุด blur/saturate */
+  -webkit-backdrop-filter: none !important;       /* Safari */
+  padding: 36px 18px;                             /* รักษาระยะเดิมไว้ */
+  min-height: 100vh;                              /* รักษาระยะเดิมไว้ */
+  box-sizing: border-box;                         /* รักษาพฤติกรรมเดิม */
+  display: flex;                                  /* รักษาพฤติกรรมเดิม */
+  align-items: flex-start;                        /* รักษาพฤติกรรมเดิม */
+  justify-content: center;                        /* รักษาพฤติกรรมเดิม */
+  background-image: none !important;              /* ป้องกันภาพ/gradient ที่อาจเซตไว้ */
+  pointer-events: auto;                           /* ถ้าต้องการให้ปุ่ม/ลิงก์ทำงานปกติ */
 }
 
 /* logos & title */
@@ -486,4 +486,38 @@ var ov = s.querySelector('.slide-overlay'); if(ov) ov.remove();
 .slide--1 {
   background-image: -webkit-image-set(url('bg1.jpg') 1x, url('bg1@2x.jpg') 2x);
   background-image: image-set(url('bg1.jpg') 1x, url('bg1@2x.jpg') 2x);
+}
+
+/* === PLAIN BG SLIDESHOW: kill overlays/filters and ensure clean image === */
+.bg-slideshow,
+.bg-slideshow .slide {
+  background: transparent !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  background-blend-mode: normal !important;
+}
+
+/* ลบ pseudo-elements ที่ชอบทำ tint/ขาวจาง */
+.bg-slideshow::before,
+.bg-slideshow::after,
+.bg-slideshow .slide::before,
+.bg-slideshow .slide::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* สไตล์พื้นฐานของสไลด์ให้พร้อมเลื่อนขึ้น */
+.bg-slideshow {
+  position: relative;
+  overflow: hidden;
+}
+.bg-slideshow .slide {
+  position: absolute;
+  left: 0; top: 100%;
+  width: 100%; height: 100%;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  transition: top 2000ms ease-in-out; /* อย่าลืมให้ตรงกับ TRANSITION_MS ใน JS */
+  will-change: top;
 }
