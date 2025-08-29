@@ -1,9 +1,12 @@
 /* ========================================================================== 
-   css/style.css — KNW Check (index + contact-admin) 
-   Updated, annotated, responsive, accessible, flawless.
+   css/style.css — FINAL CLEAN BUILD
+   For: index (background slideshow + search) + contact (admin page with QR)
+   BG images: assets/bg1.jpg … bg4.jpg
+   QR: assets/*.png
+   Author: [Your Name]
    ========================================================================== */
 
-/* ========== RESET & THEME TOKENS ========== */
+/* ========== RESET & TOKENS ========== */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; margin: 0; padding: 0; }
 :root {
@@ -45,77 +48,89 @@ body {
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .small { font-size: 0.9rem; color: var(--muted); }
 
-/* ========== BG SLIDESHOW (index) ========== */
+/* ========================================================================== 
+   BG SLIDESHOW (index) — PURE ORIGINAL IMAGES
+   ========================================================================== */
 .bg-slideshow {
-  position: fixed;
-  inset: 0;
-  z-index: -3;
-  overflow: hidden;
-  pointer-events: none;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  background: transparent !important;
+}
+.bg-slideshow,
+.bg-slideshow .slide {
+  filter: none !important;
+  -webkit-filter: none !important;
+  mix-blend-mode: normal !important;
+  background-blend-mode: normal !important;
+}
+.bg-slideshow::before,
+.bg-slideshow::after,
+.bg-slideshow .slide::before,
+.bg-slideshow .slide::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
 }
 .bg-slideshow .slide {
-  position: absolute;       /* ตามเดิม: วางซ้อนเต็ม container */
-  inset: 0;                 /* ครอบเต็มด้านบน/ล่าง/ซ้าย/ขวา */
-  width: 100%;              /* ครอบเต็มความกว้าง */
-  height: 100%;             /* ครอบเต็มความสูง */
-
-  background-size: cover;   /* ให้เต็มกรอบ ไม่บีบ/ยืดผิดสัดส่วน */
-  background-position: center center;  /* จัดกลางภาพ */
-
-  opacity: 1;               /* ให้แสดงเต็มที่, ไม่โปร่งใส */
-  transform: none;          /* ไม่ย่อ/ขยาย, ไม่เลื่อน, ให้ภาพ original */
-  will-change: auto;        /* ปล่อย browser จัดการปกติ */
-
-  animation: slide-cycle 32s linear infinite; /* ถ้าอยากให้ยัง animate ความเปลี่ยนภาพ ใช้ได้ แต่ animation ไม่ปรุงสี */
-
-  filter: none !important;  /* ล้าง filter ทุกชนิด, ป้องกัน saturate/brightness/contrast */
-  -webkit-filter: none !important; /* Safari */
-  mix-blend-mode: normal !important; /* ป้องกันการผสมสี */
-  background-blend-mode: normal !important; /* ป้องกัน blend overlay ใดๆ */
-
-  image-rendering: auto !important; /* ให้ browser แสดงภาพตามพิกเซลต้นฉบับ */
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  opacity: 0 !important;
+  transform: none !important;
+  will-change: opacity !important;
+  transition: opacity 1.6s ease-in-out !important;
+  image-rendering: auto !important;
 }
-
-
-/* staggered delays for 4 images */
-.bg-slideshow .slide:nth-child(1) { animation-delay: 0s; }
-.bg-slideshow .slide:nth-child(2) { animation-delay: 8s; }
-.bg-slideshow .slide:nth-child(3) { animation-delay: 16s; }
-.bg-slideshow .slide:nth-child(4) { animation-delay: 24s; }
-
+/* crossfade cycle */
 @keyframes slide-cycle {
-  0%   { opacity: 0; transform: translateY(10px) scale(1.02); }
-  5%   { opacity: 1; transform: translateY(0) scale(1); }
-  30%  { opacity: 1; transform: translateY(-2%) scale(1.02); }
-  35%  { opacity: 0; transform: translateY(-4%) scale(1.03); }
-  100% { opacity: 0; transform: translateY(-4%) scale(1.03); }
+  0%   { opacity: 0; }
+  5%   { opacity: 1; }
+  25%  { opacity: 1; }
+  30%  { opacity: 0; }
+  100% { opacity: 0; }
 }
-
-/* fallback bg */
-body.index:not(.has-bg-images) { background: linear-gradient(180deg,#f6f7fb,#eef2f7); }
-
-/* respect reduced motion */
+.bg-slideshow .slide:nth-child(1) { background-image: url("assets/bg1.jpg"); animation: slide-cycle 32s infinite; animation-delay: 0s; }
+.bg-slideshow .slide:nth-child(2) { background-image: url("assets/bg2.jpg"); animation: slide-cycle 32s infinite; animation-delay: 8s; }
+.bg-slideshow .slide:nth-child(3) { background-image: url("assets/bg3.jpg"); animation: slide-cycle 32s infinite; animation-delay: 16s; }
+.bg-slideshow .slide:nth-child(4) { background-image: url("assets/bg4.jpg"); animation: slide-cycle 32s infinite; animation-delay: 24s; }
+/* reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .bg-slideshow .slide { animation: none; opacity:1; transform:none; }
+  .bg-slideshow .slide { animation: none !important; opacity: 1 !important; }
 }
 
-/* ========== OVERLAY ========== */
-/* ===== PATCH: remove white veil only on index page (preserve contact page) ===== */
+/* ========================================================================== 
+   OVERLAY 
+   ========================================================================== */
+.overlay {
+  background-color: rgba(255,255,255,0.92);
+  backdrop-filter: blur(6px) saturate(1.05);
+  padding: 36px 18px;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+body.contact .overlay {
+  background: linear-gradient(180deg, rgba(8,12,22,0.65), rgba(6,9,18,0.72));
+  align-items: center;
+}
 body.index .overlay {
-  background-color: transparent !important;      /* ล้างสีขาวทับภาพ */
-  backdrop-filter: none !important;               /* หยุด blur/saturate */
-  -webkit-backdrop-filter: none !important;       /* Safari */
-  padding: 36px 18px;                             /* รักษาระยะเดิมไว้ */
-  min-height: 100vh;                              /* รักษาระยะเดิมไว้ */
-  box-sizing: border-box;                         /* รักษาพฤติกรรมเดิม */
-  display: flex;                                  /* รักษาพฤติกรรมเดิม */
-  align-items: flex-start;                        /* รักษาพฤติกรรมเดิม */
-  justify-content: center;                        /* รักษาพฤติกรรมเดิม */
-  background-image: none !important;              /* ป้องกันภาพ/gradient ที่อาจเซตไว้ */
-  pointer-events: auto;                           /* ถ้าต้องการให้ปุ่ม/ลิงก์ทำงานปกติ */
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-/* logos & title */
+/* ========================================================================== 
+   INDEX PAGE (search)
+   ========================================================================== */
 .logos { display: flex; gap: 10px; justify-content: center; align-items: center; margin-bottom: 12px; }
 .main-title { font-size: clamp(20px,3.2vw,28px); margin: 6px 0 14px; text-align: center; font-weight: 800; }
 
@@ -167,17 +182,9 @@ select {
   box-shadow: 0 6px 14px rgba(12,16,24,0.04);
 }
 
-/* ========== CARD ========== */
-.card { background: var(--panel); border:1px solid #eef0f5; border-radius: calc(var(--br)+4px); box-shadow: var(--shadow); padding: 28px; position: relative; overflow: hidden; }
-.card::before {
-  content:""; position: absolute; inset:-1px -1px auto -1px; height: 9px;
-  background: linear-gradient(90deg,var(--ig1),var(--ig2)); border-top-left-radius: inherit; border-top-right-radius: inherit;
-}
-.card.accent-fb::before { background: linear-gradient(90deg,var(--fb1),var(--fb2)); }
-.card.accent-line::before { background: linear-gradient(90deg,var(--ln1),var(--ln2)); }
-.contact-main .card::before { display: none; }
-
-/* ========== CONTACT-ADMIN ========== */
+/* ========================================================================== 
+   CONTACT-ADMIN (QR system)
+   ========================================================================== */
 .contact-card {
   background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
   border-radius: 20px; padding: 22px; text-align: center; box-shadow: 0 18px 48px rgba(2,6,23,0.45);
@@ -197,14 +204,12 @@ select {
   padding:10px 16px; border-radius:9999px; font-weight:800; cursor:pointer; transition: transform .12s, background .2s, border .2s;
   box-shadow: 0 6px 18px rgba(0,0,0,0.18);
 }
-.card .btn-ghost:active{ transform: translateY(1px) scale(.997); }
-.card .btn-ghost.active{ background: linear-gradient(135deg,var(--accent1),var(--accent2)); border-color:transparent; color:#fff; box-shadow:0 12px 28px rgba(79,70,229,0.2); animation:btn-pulse 1.6s infinite; }
+.card .btn-ghost.active{
+  background: linear-gradient(135deg,var(--accent1),var(--accent2)); border-color:transparent; color:#fff;
+  box-shadow:0 12px 28px rgba(79,70,229,0.2); animation:btn-pulse 1.6s infinite;
+}
 @keyframes btn-pulse{ 0%{ transform:scale(1) } 50%{ transform:scale(1.02) } 100%{ transform:scale(1) } }
-
-/* === QR IMAGE with platform-colored border === */
-.qr-display{ margin-top:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
-
-/* gradient/single-color frame wrapper */
+.qr-display{ margin-top:12px; display:flex; flex-direction:column; align-items:center; gap:10px; }
 .qr-wrap{ display:inline-block; padding:6px; border-radius:24px; }
 .qr-wrap.ig{ background: linear-gradient(135deg,var(--igG1),var(--igG2),var(--igG3),var(--igG4),var(--igG5)); }
 .qr-wrap.fb{ background: linear-gradient(135deg,var(--fb),#4e9bff); }
@@ -213,8 +218,7 @@ select {
 /* QR image: single authoritative rule */
 .qr-img {
   display: block;
-  width: 100%;
-  max-width: 360px;   /* ขนาดไม่เกิน 360px */
+  width: 100%; max-width: 360px;
   height: auto;
   border-radius: 18px;
   background: #fff;
@@ -225,21 +229,21 @@ select {
 }
 
 .qr-caption{ margin-top:6px; font-weight:800; font-size:1.02rem; color:#fff; letter-spacing:0.2px; }
-.qr-hint-block{ margin-top:0px; font-size:.92rem; opacity:.95; color:#fff; }
+.qr-extra{ margin-top:10px; padding:10px 14px; border-radius:14px; background: rgba(255,255,255,0.08); color:#fff; font-weight:700; }
 
-/* help text under QR (as requested) */
-.qr-extra{
-  margin-top:10px; padding:10px 14px; border-radius:14px;
-  background: rgba(255,255,255,0.08); color:#fff; font-weight:700;
-  box-shadow: 0 10px 28px rgba(0,0,0,.18);
+/* swap controls */
+.swap-controls{ display:flex; gap:10px; align-items:center; justify-content:center; margin-top:12px; }
+.swap-btn{
+  padding:10px 14px; border-radius:12px; font-weight:800; border:2px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04); color:#fff; cursor:pointer; box-shadow:0 12px 30px rgba(0,0,0,0.22);
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 }
-.qr-extra .k{ opacity:.9; }
-
-/* back-home — more visible with playful effect */
-.contact-footer{ margin-top:16px; }
+.swap-btn:hover{ transform: translateY(-4px); box-shadow:0 18px 38px rgba(0,0,0,0.28); }
+.swap-btn.rotate{ background: linear-gradient(135deg,var(--accent1),var(--accent2)); border-color:transparent; box-shadow:0 12px 36px rgba(79,70,229,0.18); }
+.contact-footer{ margin-top:18px; display:flex; justify-content:center; }
 .back-home{
   display:inline-flex; align-items:center; gap:8px;
-  text-decoration:none; font-weight:900; letter-spacing:.2px;
+  text-decoration:none; font-weight:900;
   padding:10px 16px; border-radius:9999px;
   color:#0b1020; background:#fff;
   box-shadow:0 16px 40px rgba(0,0,0,.25), inset 0 0 0 2px rgba(255,255,255,.4);
@@ -258,28 +262,10 @@ select {
 }
 .back-home:hover::before{ opacity:.18; }
 .back-home:hover::after{ left:120%; }
-.back-home span.ico{ display:inline-block; transform:translateX(0); transition:transform .2s; }
-.back-home:hover span.ico{ transform:translateX(-2px); }
 
-/* guide UI (small helper) */
-.qr-guide{ display:inline-flex; align-items:center; gap:10px; margin-left:8px; padding:6px 12px; border-radius:9999px; background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); }
-.guide-text{ font-weight:700; font-size:.92rem; color:#fff; display:block; }
-
-.arrow-pulse{ width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:18px solid var(--accent2); transform:rotate(-90deg); animation:arrow-nudge 1.3s infinite; }
-@keyframes arrow-nudge{ 0%,100%{ transform:translateX(0) rotate(-90deg);} 50%{ transform:translateX(4px) rotate(-90deg);} }
-.mouse-pointer{ width:18px;height:26px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='26' viewBox='0 0 18 26'%3E%3Cpath d='M2 1 L16 13 L10 13 L14 23 L11.5 24 L7.5 14 L2 18Z' fill='%23ffffff'/%3E%3C/svg%3E"); background-size:contain; background-repeat:no-repeat; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.25)); animation:mouse-peck 1.6s infinite; }
-@keyframes mouse-peck{ 0%,100%{ transform:translateY(0); opacity:.95; } 40%{ transform:translateY(-2px); opacity:1 } 60%{ transform:translateY(0); opacity:.95 } }
-
-/* contact extra */
-.contact-extra{ margin-top:14px; color:rgba(255,255,255,0.92); text-align:left; max-width:680px; margin-left:auto; margin-right:auto; }
-.contact-list{ list-style:none; padding:0; margin:0 0 12px 0; }
-.contact-list li{ margin:6px 0; color:rgba(255,255,255,0.92); font-weight:600; }
-
-/* footer */
-.site-footer{ text-align:center; color:var(--muted); margin-top:18px; }
-.muted-badge{ display:inline-block; padding:6px 12px; border-radius:9999px; background: rgba(255,255,255,0.06); color:#fff; font-weight:700; }
-
-/* responsive tweaks */
+/* ========================================================================== 
+   RESPONSIVE
+   ========================================================================== */
 @media (max-width:980px){
   .container{ padding:0 16px; }
   #name-search{ width:70vw; }
@@ -346,254 +332,8 @@ transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 
 /* ให้ปุ่มเลือกแพลตฟอร์มรองรับขนาดหน้าจอเล็ก */
 @media (max-width:420px){
-.swap-controls{ flex-direction:column; gap:8px; }
-.swap-btn{ width:100%; }
-.qr-wrap{ width:84vw; height:84vw; }
+  .swap-controls{ flex-direction:column; gap:8px; }
+  .swap-btn{ width:100%; }
+  .qr-wrap{ width:84vw; height:84vw; }
 }
-
-
-/* ให้แน่ใจว่า sr-only ยังคงซ่อนแต่เข้าถึงได้ */
-.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-
-
-/* จบบล็อก CSS additions */
-
-/* ----------------------------
-   Patch: ensure buttons clickable
-   ---------------------------- */
-.card { position: relative; z-index: 2; pointer-events: auto; }
-
-/* make action area above other decorations */
-.card-actions { position: relative; z-index: 3; pointer-events: auto; }
-
-/* polish for interactive elements */
-.btn-ghost {
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* explicit ensure qr area doesn't overlay the buttons */
-.qr-wrap { pointer-events: auto; z-index: 1; }
-
-/* Ensure clickable images don't swallow events unintentionally */
-.qr-img { pointer-events: auto; display:block; }
-
-/* If any overlay accidentally sits on top, use this debug helper (ลบออกถ้าทุกอย่างเรียบร้อย) */
-/* .overlay { outline: 1px dashed rgba(255,255,255,0.06); } */
-
-/* --- patch: ensure card-actions and buttons are clickable --- */
-.card { position: relative; z-index: 2; }
-.card-actions { position: relative; z-index: 4; }
-.btn-ghost { pointer-events: auto; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
-.qr-wrap { pointer-events: auto; z-index: 1; } /* ทำให้ภาพ bg1.jpg bg2.jpg bg3.jpg bg4.jpg สีชัดเจนขึ้น ภาพความชัดเพิ่มขึ้น แต่ภาพยังจางนิดนึง ให้มองเห็นภาพชัดเจน ทำอย่างละเอียดเหมือนเดิมทุกอย่าง เหมือนคัดลอกข้อความ ห้ามข้ามบรรทัดแม้แต่บรรทัดเดียว อ่านให้ครบถ้วน ทำให้ละเอียด */
-
-/* ========== BG ENHANCEMENT PATCH (bg1.jpg–bg4.jpg: pure original, no white overlay) ========== */
-
-/* Tunable variables for background enhancement */
-:root{
-  --bg-scale: 1.004;          /* scale น้อย เพื่อไม่ให้เบลอ */
-  --bg-ty-in: 6px;            /* ขยับเข้าเล็กน้อย */
-  --bg-ty-out: -2%;           /* เคลื่อนออกเล็กน้อย */
-}
-
-/* --- Very specific global safety: make sure slideshow frames don't tint images --- */
-
-
-/* ให้รูปครอบเต็มกรอบตามที่ออกแบบ */
-.bg-slideshow .slide {
-  background-size: cover !important;
-  background-position: center center !important;
-}
-
-
-/* ให้ภาพแสดงคมชัดตามต้นฉบับ */
-/* image-rendering: auto !important; */
-
-
-/* --- Extra defensive rules in case images are <img> or <picture> inside slides --- */
-.bg-slideshow img,
-.bg-slideshow picture,
-.bg-slideshow .slide img {
--webkit-filter: none !important;
-filter: none !important;
-image-rendering: auto !important;
-mix-blend-mode: normal !important;
-}
-
-
-/* --- Optional: tiny neutral veil variable (set to 0 for exact original) --- */
-/* ค่าเริ่มต้นคือ 0 (ไม่มีการทับสี) — ถ้าต้องการให้ยังมี veil เล็กมาก ให้ตั้งเป็น 0.01 (1%) */
-:root { --bg-original-veil: 0; }
-
-
-/* ถ้าต้องการให้มี veil เล็กมากจริงๆ (ไม่แนะนำ) ให้เอา comment ออกจากบล็อกต่อไปนี้ */
-/*
-.bg-slideshow .slide::after {
-content: "";
-position: absolute;
-inset: 0;
-pointer-events: none;
-background: rgba(255,255,255,var(--bg-original-veil));
-}
-*/
-
-
-/* --- Keep animation but do not change color values inside it --- */
-@keyframes slide-cycle {
-0% { opacity: 0; transform: translateY(6px) scale(1.000); }
-5% { opacity: 1; transform: translateY(0) scale(1); }
-30% { opacity: 1; transform: translateY(-0.8%) scale(1.0005); }
-35% { opacity: 0; transform: translateY(-2%) scale(1.001); }
-100% { opacity: 0; transform: translateY(-2%) scale(1.001); }
-}
-
-
-/* --- Respect reduced-motion users --- */
-@media (prefers-reduced-motion: reduce) {
-body.index .bg-slideshow .slide { animation: none !important; opacity: 1 !important; transform: none !important; }
-}
-
-
-/* --- High DPI: keep original clarity --- */
-@media (min-resolution: 2dppx) {
-body.index .bg-slideshow .slide { image-rendering: auto !important; }
-}
-
-
-/* --- Notes & troubleshooting ---
-1) วางไฟล์นี้ไว้หลังไฟล์หลัก (เช่น <link rel="stylesheet" href="/css/style-bg-originals.css">)
-2) ถ้าหลังติดตั้งแล้วยังเห็นการปรุงสี ให้ตรวจสอบว่าไม่ได้มี JavaScript ที่เขียน inline styles
-เช่น element.style.filter = 'saturate(1.1) brightness(0.98)'; — ถ้ามี ให้ลบ/แก้ หรือใช้ JS ด้านล่างล้างค่า
-3) หากยังมี pseudo-element overlay อยู่ ให้ค้นหาในไฟล์หลักว่า .bg-slideshow .slide::after ถูกนิยามไว้ที่ไหน
-และลบหรือ comment ออก
-
-
-ตัวอย่าง JS (เรียกใช้หลัง DOM load) — ใช้เมื่อ CSS อย่างเดียวไม่พอ:
-document.addEventListener('DOMContentLoaded', function(){
-document.querySelectorAll('.bg-slideshow .slide').forEach(function(s){
-s.style.filter = '';
-s.style.webkitFilter = '';
-// ถ้ามี pseudo overlay ที่ถูกสร้างด้วย JS ให้ลบ node ที่ชื่อ .slide-overlay (ตัวอย่าง)
-var ov = s.querySelector('.slide-overlay'); if(ov) ov.remove();
-});
-});
-
-
-========================================================================== */
-
-.slide--1 {
-  background-image: -webkit-image-set(url('assets/bg1.jpg') 1x, url('assets/bg1@2x.jpg') 2x);
-  background-image: image-set(url('assets/bg1.jpg') 1x, url('assets/bg1@2x.jpg') 2x);
-}
-
-/* === PLAIN BG SLIDESHOW: kill overlays/filters and ensure clean image === */
-.bg-slideshow,
-.bg-slideshow .slide {
-  background: transparent !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
-  background-blend-mode: normal !important;
-}
-
-/* ลบ pseudo-elements ที่ชอบทำ tint/ขาวจาง */
-.bg-slideshow::before,
-.bg-slideshow::after,
-.bg-slideshow .slide::before,
-.bg-slideshow .slide::after {
-  content: none !important;
-  display: none !important;
-}
-
-/* สไตล์พื้นฐานของสไลด์ให้พร้อมเลื่อนขึ้น */
-.bg-slideshow {
-  position: relative;
-  overflow: hidden;
-}
-.bg-slideshow .slide {
-  position: absolute;
-  left: 0; top: 100%;
-  width: 100%; height: 100%;
-  background-position: center center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  transition: top 2000ms ease-in-out; /* อย่าลืมให้ตรงกับ TRANSITION_MS ใน JS */
-  will-change: top;
-}
-
-/* ========================================================================== 
-   FINAL PATCH: bg1.jpg–bg4.jpg original clarity (no veil/filter) 
-   Place at the END of css/style.css
-   ========================================================================== */
-
-/* 1) ล้าง veil/blur ของ overlay บนหน้า index */
-body.index .overlay {
-  background-color: transparent !important;
-  background-image: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-}
-
-/* 2) bg-slideshow ต้องแสดงภาพเต็มหน้าจอ (fixed, behind content) */
-.bg-slideshow {
-  position: fixed !important;
-  inset: 0 !important;             /* top/right/bottom/left = 0 */
-  z-index: -1 !important;          /* อยู่ด้านหลัง content */
-  overflow: hidden !important;
-  pointer-events: none !important;
-  background: transparent !important;
-}
-
-/* 3) ล้าง filter, blend-mode, pseudo-element ใดๆ ที่เคยถูกใส่ */
-.bg-slideshow,
-.bg-slideshow .slide {
-  filter: none !important;
-  -webkit-filter: none !important;
-  mix-blend-mode: normal !important;
-  background-blend-mode: normal !important;
-}
-
-.bg-slideshow::before,
-.bg-slideshow::after,
-.bg-slideshow .slide::before,
-.bg-slideshow .slide::after {
-  content: none !important;
-  display: none !important;
-  background: none !important;
-}
-
-/* 4) slide แต่ละภาพต้องเต็มจอ คมชัด ไม่ถูกบีบ/เบลอ */
-.bg-slideshow .slide {
-  position: absolute !important;
-  inset: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  background-size: cover !important;
-  background-position: center center !important;
-  background-repeat: no-repeat !important;
-  opacity: 1 !important;
-  transform: none !important;
-  will-change: auto !important;
-  transition: opacity 1.6s ease-in-out !important;
-  image-rendering: auto !important;
-}
-
-/* 5) animation แบบ crossfade (ไม่แต่งสี, ไม่ใส่หมอก) */
-@keyframes slide-cycle {
-  0%   { opacity: 0; }
-  5%   { opacity: 1; }
-  25%  { opacity: 1; }
-  30%  { opacity: 0; }
-  100% { opacity: 0; }
-}
-
-.bg-slideshow .slide:nth-child(1) { animation: slide-cycle 32s infinite; animation-delay: 0s; }
-.bg-slideshow .slide:nth-child(2) { animation: slide-cycle 32s infinite; animation-delay: 8s; }
-.bg-slideshow .slide:nth-child(3) { animation: slide-cycle 32s infinite; animation-delay: 16s; }
-.bg-slideshow .slide:nth-child(4) { animation: slide-cycle 32s infinite; animation-delay: 24s; }
-
-/* 6) เคารพ reduced-motion (ไม่ให้ animation ถ้าผู้ใช้ปิด motion) */
-@media (prefers-reduced-motion: reduce) {
-  .bg-slideshow .slide { animation: none !important; opacity: 1 !important; }
-}
+:focus-visible { outline: 3px solid rgba(79,70,229,0.18); outline-offset: 3px; border-radius: 8px; }
