@@ -66,6 +66,23 @@
 </body>
 </html>
 
+<!-- ปิด overlay filter เฉพาะหน้า index -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (document.body.classList.contains('index')) {
+      var ov = document.querySelector('.overlay');
+      if (ov) {
+        ov.style.backgroundColor = 'transparent';
+        ov.style.backdropFilter = 'none';
+        ov.style.webkitBackdropFilter = 'none';
+        ov.style.backgroundImage = 'none';
+      }
+    }
+  });
+  </script>
+</body>
+</html>
+
 <img src="bg1.jpg"
      srcset="bg1.jpg 1x, bg1@2x.jpg 2x, bg1@3x.jpg 3x"
      sizes="(max-width: 980px) 100vw, 1600px"
