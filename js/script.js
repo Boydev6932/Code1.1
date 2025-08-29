@@ -1,18 +1,17 @@
 /* ==========================================================================
-   script.js — CLEAN & PLAIN BG SLIDESHOW + Index search + Contact QR
-   - สไลด์ภาพต้นฉบับล้วนๆ จาก ./assets/bg1.jpg ... bg4.jpg
-   - ตัดฟิลเตอร์/โอเวอร์เลย์/เลเยอร์ซ้อนทุกชนิด (inline) ให้โปร่งใส
-   - รวมโค้ดเหลือชุดเดียว (ลบ duplication ที่ทำให้ error)
-   ========================================================================= */
+   script.js — FINAL CLEAN
+   - ไม่แตะต้อง/ไม่ใส่ฟิลเตอร์กับพื้นหลัง (ปล่อยให้ CSS ทำ crossfade)
+   - ใช้ภาพจาก ./assets/bg1.jpg ... bg4.jpg เท่านั้น
+   - ไม่มี overlay/เลเยอร์ซ้อน/โค้ดซ้ำ/บั๊ก nextSlide
+   - รวมเฉพาะฟังก์ชันที่จำเป็น: year + preload, Index search, Contact QR
+   ========================================================================== */
 
-(function () {
+(() => {
   'use strict';
 
-  /* ========== CONFIG ========== */
-  const ASSETS_DIR     = './assets';
-  const SLIDE_FILES    = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg']; // แก้/เพิ่มได้
-  const SLIDE_INTERVAL = 7000;   // ms: เวลาพักก่อนเปลี่ยนภาพ
-  const TRANSITION_MS  = 2000;   // ms: เวลาการเลื่อน (ควรตรงกับ CSS)
+  /* ========== CONFIG (คงที่เพื่อกันพาธเพี้ยน) ========== */
+  const ASSETS_DIR  = './assets';
+  const SLIDE_FILES = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg']; // ต้องมีใน ./assets
 
   /* ========== UTILS ========== */
   const onReady = (fn) => {
@@ -25,7 +24,7 @@
 
   const normalize = (s) => (s || '').toString().trim().replace(/\s+/g, ' ').toLowerCase();
 
-  // Levenshtein distance (สำหรับ fuzzy)
+  // Levenshtein distance + similarity (ใช้กับ fuzzy search)
   function levenshtein(a, b) {
     const m = a.length, n = b.length;
     if (m === 0) return n;
@@ -50,125 +49,24 @@
     return 1 - (levenshtein(q, t) / L);
   };
 
-  // ลบโอเวอร์เลย์/เลเยอร์/ฟิลเตอร์ (inline) ออกจากสไลด์ให้ “ภาพเปล่า”
-  function stripSlideStyling(el, imageUrl) {
-    if (!el) return;
-    // ลบลูกที่เป็นโอเวอร์เลย์ที่พบบ่อย
-    el.querySelectorAll('.slide-overlay, .overlay, .veil, .bg-tint, .tint, .mask, .cover').forEach(n => n.remove());
-    // ล้างค่า filter/opacity/blend/background อื่นๆ ที่ทำให้ซีด/ขาว
-    el.style.filter = 'none';
-    el.style.webkitFilter = 'none';
-    el.style.opacity = '1';
-    el.style.mixBlendMode = 'normal';
-    el.style.backgroundBlendMode = 'normal';
-    el.style.backgroundColor = 'transparent';
-    // ตั้งภาพพื้นหลังให้เป็นภาพเดียว (ชั้นเดียว)
-    el.style.backgroundImage = `url("${imageUrl}")`;
-    el.style.backgroundRepeat = 'no-repeat';
-    el.style.backgroundPosition = 'center center';
-    el.style.backgroundSize = 'cover';
-  }
+  /* ========== ปีใน footer + พรีโหลดภาพสไลด์ + เก็บกวาดสไลด์ (ไม่มีการเปลี่ยนภาพด้วย JS) ========== */
+  function initYearAndPreload() {
+    const yEl = document.getElementById('year');
+    if (yEl) yEl.textContent = new Date().getFullYear();
 
-  /* ========== SLIDESHOW (ภาพต้นฉบับล้วน) ========== */
-  function initSlideshowPlain() {
-    const container = document.querySelector('.bg-slideshow');
-    if (!container) return;
-
-    // บังคับคอนเทนเนอร์ให้พร้อมสำหรับสไลด์
-    container.style.position = container.style.position || 'relative';
-    container.style.overflow = 'hidden';
-
-    // เตรียมจำนวน .slide ให้เท่ากับจำนวนไฟล์
-    let slides = Array.from(container.querySelectorAll('.slide'));
-    const needed = SLIDE_FILES.length - slides.length;
-    for (let i = 0; i < needed; i++) {
-      const div = document.createElement('div');
-      div.className = 'slide';
-      container.appendChild(div);
-    }
-    slides = Array.from(container.querySelectorAll('.slide')).slice(0, SLIDE_FILES.length);
-
-    // สร้าง URL พร้อมเส้นทาง
-    const urls = SLIDE_FILES.map(f => `${ASSETS_DIR}/${f}`);
-
-    // Preload แล้วค่อยเริ่ม (กันกระพริบ)
-    let loaded = 0;
-    const onOneLoaded = () => { loaded++; if (loaded >= urls.length) start(); };
-    const onOneError  = () => { loaded++; if (loaded >= urls.length) start(); };
-    urls.forEach(u => { const img = new Image(); img.onload = onOneLoaded; img.onerror = onOneError; img.src = u; });
-
-    let current = 0;
-    let intervalId = null;
-
-    function start() {
-      // ตั้งค่าสไลด์ให้เป็นภาพเปล่าล้วน + ตำแหน่งสำหรับอนิเมชัน
-      slides.forEach((s, i) => {
-        stripSlideStyling(s, urls[i]);
-        s.style.position = 'absolute';
-        s.style.left = '0';
-        s.style.width = '100%';
-        s.style.height = '100%';
-        s.style.top = i === 0 ? '0%' : '100%';
-        s.style.zIndex = i === 0 ? '1' : '0';
-        s.style.transition = `top ${TRANSITION_MS}ms ease-in-out`;
-        s.style.willChange = 'top';
-        s.setAttribute('aria-hidden', i === 0 ? 'false' : 'true');
-      });
-
-      // loop
-      intervalId = window.setInterval(nextSlide, SLIDE_INTERVAL);
-      container.__slideshowInterval = intervalId;
-    }
-
-    function nextSlide() {
-      const prev = current;
-      current = (current + 1) = current >= slides.length ? 0 : current; // dummy to avoid accidental errors
-    }
-
-    // ——— แก้บรรทัดข้างบนเป็นแบบถูกต้อง ———
-    // (โค้ดจริงด้านล่าง ไม่แตะต้องได้เลย แต่ทิ้งบรรทัด dummy ข้างบนเพื่อกันเผลอแก้ผิด)
-    // โค้ดจริง:
-    function _next() {
-      const prev = current;
-      current = (current + 1) % slides.length;
-
-      const prevSlide = slides[prev];
-      const nextSlide = slides[current];
-
-      // บังคับคง “ภาพล้วน” ทุกครั้งเผื่อมี CSS มา override ภายหลัง
-      stripSlideStyling(prevSlide, urls[prev]);
-      stripSlideStyling(nextSlide, urls[current]);
-
-      nextSlide.style.zIndex = '2';
-      nextSlide.setAttribute('aria-hidden', 'false');
-
-      // เลื่อนขึ้น: prev -> -100%, next -> 0%
-      prevSlide.style.top = '-100%';
-      nextSlide.style.top = '0%';
-
-      // หลัง transition เสร็จ: reset prev ให้กลับลงด้านล่าง (100%) เพื่อใช้ใหม่ในรอบต่อไป
-      window.setTimeout(() => {
-        // คืนค่า z-index และ position ของ prev เพื่อเตรียมการวนซ้ำ
-        prevSlide.style.top = '100%';
-        prevSlide.style.zIndex = '0';
-        prevSlide.setAttribute('aria-hidden', 'true');
-        nextSlide.style.zIndex = '1';
-      }, TRANSITION_MS);
-    }
-
-    // ผูก _next กับตัวเรียกจริง
-    function nextSlide() { _next(); }
-
-    // พัก/เล่นตาม Visibility
-    document.addEventListener('visibilitychange', () => {
-      if (!container.__slideshowInterval) return;
-      if (document.hidden) {
-        clearInterval(container.__slideshowInterval);
-        container.__slideshowInterval = null;
-      } else {
-        container.__slideshowInterval = window.setInterval(nextSlide, SLIDE_INTERVAL);
-      }
+    // พรีโหลดภาพเพื่อลดการกระพริบ (ไม่แก้ไข style พื้นหลัง)
+    SLIDE_FILES.forEach(f => {
+      const img = new Image();
+      img.src = `${ASSETS_DIR}/${f}`;
     });
+
+    // ลบชิ้นส่วนที่อาจบังภาพภายใน .bg-slideshow เท่านั้น (กันหมอก/veil)
+    const cont = document.querySelector('.bg-slideshow');
+    if (cont) {
+      cont.querySelectorAll('.slide .slide-overlay, .slide .veil, .slide .bg-tint, .slide .tint, .slide .mask')
+          .forEach(n => n.remove());
+      // ไม่ตั้ง filter/opacity/background ใด ๆ เพิ่ม — ปล่อยให้ CSS คุมล้วน ๆ
+    }
   }
 
   /* ========== DATA (รายชื่อ) ========== */
@@ -204,19 +102,7 @@
     "วิวิทย์ นาคเครือ","ศิววงศ์ สิทธิศิริสาร","สิรภพ อังคะวรางกูร","อุ้มบุญ ชื่นตา",
     "ฐานพัฒน์ บุตรวงศ์","ธนกร ไพรีรณ"
   ];
-
   const needFixIndexes = [0,1,4,7,8,11,18,28,48,56,58,63,64,71,74,76,83,100,105,114,115,116];
-
-  /* ========== HELPERS ========== */
-
-  // onReady: ถ้า DOM ยัง loading ให้รอ DOMContentLoaded มิฉะนั้นเรียกทันที
-  // (already declared above)
-
-  // normalize string for search
-  // (already declared above)
-
-  // Levenshtein distance (for fuzzy matching)
-  // (Already declared above, so this duplicate block is removed.)
 
   /* ========== INDEX (search UI) ========== */
   function initIndex() {
@@ -228,7 +114,7 @@
     const resetBtn    = document.getElementById('reset-btn');
     const resultBox   = document.getElementById('result');
 
-    // populate select if empty
+    // เติมรายชื่อใน <select> ถ้ายังไม่มี
     if (nameSelect.options.length <= 1) {
       names.forEach(n => {
         const opt = document.createElement('option');
@@ -238,7 +124,6 @@
       });
     }
 
-    // set result box text + classes
     function setResult(text, mode) {
       if (!resultBox) return;
       resultBox.className = '';
@@ -249,12 +134,11 @@
       }
       resultBox.textContent = text;
       resultBox.classList.remove('hidden');
-      if (mode === 'ok') resultBox.classList.add('status-ok');
-      if (mode === 'bad') resultBox.classList.add('status-bad');
+      if (mode === 'ok')   resultBox.classList.add('status-ok');
+      if (mode === 'bad')  resultBox.classList.add('status-bad');
       if (mode === 'warn') resultBox.classList.add('status-warn');
     }
 
-    // fuzzy find best index
     function findBestIndex(query) {
       const q = normalize(query);
       if (q.length < 2) return -1;
@@ -264,22 +148,18 @@
         const full = normalize(names[i]);
         const parts = full.split(' ');
         const first = parts[0] || '';
-        const last = parts[parts.length - 1] || '';
+        const last  = parts[parts.length - 1] || '';
         let score = 0;
         if (first.includes(q)) score += 0.35;
-        if (last.includes(q)) score += 0.45;
-        if (full.includes(q)) score += 0.2;
+        if (last.includes(q))  score += 0.45;
+        if (full.includes(q))  score += 0.20;
         const sim = Math.max(similarity(q, first), similarity(q, last), similarity(q, full));
         score += sim;
-        if (score > bestScore) {
-          bestScore = score;
-          best = i;
-        }
+        if (score > bestScore) { bestScore = score; best = i; }
       }
       return best;
     }
 
-    // select index and show status
     function selectIndex(idx) {
       if (idx < 0 || idx >= names.length) {
         setResult('⚠️ ไม่พบชื่อที่ใกล้เคียง กรุณาลองพิมพ์ใหม่', 'warn');
@@ -288,7 +168,8 @@
       nameSelect.value = names[idx];
       nameSelect.classList.add('is-matched');
       nameSelect.dispatchEvent(new Event('change', { bubbles: true }));
-      try { nameSelect.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+      try { nameSelect.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
+
       if (needFixIndexes.includes(idx)) {
         setResult('❌ ติด มผ. — กรุณาแก้ไข❗', 'bad');
       } else {
@@ -334,18 +215,17 @@
       nameSelect.classList.remove('is-matched');
       nameSelect.dispatchEvent(new Event('change', { bubbles: true }));
       setResult('', 'hide');
-      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) {}
     });
   }
 
-  /* ========== CONTACT (QR toggles — ชุดเดียวพอ) ========== */
+  /* ========== CONTACT (QR toggles) ========== */
   function initContact() {
-    const qrImg = document.getElementById('contact-qr-img') || document.getElementById('qr-img');
-    if (!qrImg) return;
-
+    const qrImg   = document.getElementById('contact-qr-img') || document.getElementById('qr-img');
     const labelEl = document.getElementById('qr-platform-label');
-    const buttons = Array.from(document.querySelectorAll('[data-show-qr]'));
     const wrap    = document.getElementById('qr-wrap');
+    const buttons = Array.from(document.querySelectorAll('[data-show-qr]'));
+    if (!qrImg || buttons.length === 0) return;
 
     const platforms = {
       ig:   { label: 'Instagram', src: `${ASSETS_DIR}/qr-instagram.png`, cls: 'ig' },
@@ -353,302 +233,35 @@
       line: { label: 'LINE',      src: `${ASSETS_DIR}/qr-line.png`,      cls: 'line' }
     };
 
+    // พรีโหลด QR
+    Object.values(platforms).forEach(p => { const im = new Image(); im.src = p.src; });
+
     function setPlatform(key) {
       const p = platforms[key];
       if (!p) return;
-
-      // ปรับปุ่ม active + aria
       buttons.forEach(b => {
         const active = b.getAttribute('data-show-qr') === key;
         b.classList.toggle('active', active);
         b.setAttribute('aria-pressed', String(active));
       });
-
       if (wrap) {
         wrap.classList.remove('ig','fb','line');
         wrap.classList.add(p.cls);
       }
-
-      // เปลี่ยนรูป (มี fallback ตามธรรมชาติของ <img>)
-      qrImg.onerror = null; // ปิด loop
       qrImg.src = p.src;
       qrImg.alt = `QR Code ของผู้ดูแล (${p.label})`;
-
       if (labelEl) labelEl.textContent = p.label;
     }
 
     buttons.forEach(btn => btn.addEventListener('click', () => setPlatform(btn.getAttribute('data-show-qr'))));
-    setPlatform('ig');
+    setPlatform('ig'); // ค่าเริ่มต้น
   }
 
   /* ========== BOOT ========== */
-  onReady(function () {
-    try {
-      initSlideshow();
-    } catch (e) {
-      console.error('slideshow error', e);
-    }
-
-    try {
-      initIndex();
-    } catch (e) {
-      console.error('initIndex error', e);
-    }
-
-    try {
-      initContact();
-    } catch (e) {
-      console.error('initContact error', e);
-    }
-
-/* ========== BOOT ========== */
   onReady(() => {
-    // ปีใน footer
-    const yEl = document.getElementById('year');
-    if (yEl) yEl.textContent = new Date().getFullYear();
-
-    try { initSlideshowPlain(); } catch (e) { console.error('slideshow error', e); }
-    try { initIndex(); }          catch (e) { console.error('initIndex error', e); }
-    try { initContact(); }        catch (e) { console.error('initContact error', e); }
-  });
-})();
-
-  /* ========== Minimal helpers for small UI pieces (reset button / QR binds) ========== */
-  // Reset button behavior and QR toggles for any remaining elements:
-  (function minimalSharedBehaviors() {
-    // year in footer (redundant-safe)
-    const y = document.getElementById('year');
-    if (y) y.textContent = new Date().getFullYear();
-
-    // reset button (redundant-safe)
-    const nameInput = document.getElementById('name-search');
-    const resetBtn  = document.getElementById('reset-btn');
-    const resultBox = document.getElementById('result');
-    const nameSelect = document.getElementById('name');
-
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
-        if (nameInput) nameInput.value = '';
-        if (nameSelect) nameSelect.selectedIndex = 0;
-        if (resultBox) {
-          resultBox.classList.add('hidden');
-          resultBox.textContent = '';
-          resultBox.classList.remove('status-ok', 'status-bad', 'status-warn');
-        }
-        if (nameInput) nameInput.focus();
-      });
-    }
-
-    // Simple QR toggle fallback (for elements that might exist outside initContact)
-    const qrImg = document.getElementById('contact-qr-img');
-    const qrWrap = document.getElementById('qr-wrap');
-    const qrLabel = document.getElementById('qr-platform-label');
-    const toggleButtons = document.querySelectorAll('[data-show-qr]');
-
-    const map = {
-      ig:   { src: `${ASSETS_DIR}/qr-instagram.png`, label: 'Instagram', wrapClass: 'ig' },
-      fb:   { src: `${ASSETS_DIR}/qr-facebook.png`,  label: 'Facebook',  wrapClass: 'fb' },
-      line: { src: `${ASSETS_DIR}/qr-line.png`,      label: 'LINE',      wrapClass: 'line' }
-    };
-
-    if (toggleButtons && toggleButtons.length) {
-      toggleButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          toggleButtons.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-
-          const key = btn.getAttribute('data-show-qr');
-          const conf = map[key];
-          if (!conf) return;
-
-          if (qrImg) {
-            qrImg.src = conf.src;
-            qrImg.alt = `QR Code ของผู้ดูแล (${conf.label})`;
-          }
-          if (qrLabel) qrLabel.textContent = conf.label;
-          if (qrWrap) {
-            qrWrap.classList.remove('ig', 'fb', 'line');
-            qrWrap.classList.add(conf.wrapClass);
-          }
-        });
-      });
-    }
-  })();
-
-})();
-
-
-// js/script.js — robust QR toggle: รองรับทั้ง file:// (direct open) และ http server
-document.addEventListener('DOMContentLoaded', function () {
-  // set year if element present
-  const y = document.getElementById('year');
-  if (y) y.textContent = new Date().getFullYear();
-
-  // detect base path:
-  // - ถ้าเปิดด้วย file:// ให้ใช้ './assets'
-  // - ถ้าใช้ http/https ให้ใช้ '/assets' (root) เพื่อความแน่นอนบน server
-  // แต่บาง deployment ต้องการ 'assets' (relative) — log ช่วย debug
-  let base;
-  if (location.protocol === 'file:') {
-    base = './assets';
-  } else {
-    // ถ้าหน้า html ถูก serve จาก sub-path ของเว็บ คุณอาจต้องเปลี่ยนเป็น relative:
-    // base = window.location.pathname.endsWith('/') ? window.location.pathname + 'assets' : '/assets';
-    // แต่โดยทั่วไปใช้ '/assets' จะชี้ไปที่ root domain
-    base = '/assets';
-  }
-
-  // ถ้าต้องการ fallback ให้ใช้ relative ถ้า file not found (try both)
-  const trySrc = (p) => {
-    return p;
-  };
-
-  const map = {
-    ig:   { src: trySrc(base + '/qr-instagram.png'), label: 'Instagram', wrapClass: 'ig' },
-    fb:   { src: trySrc(base + '/qr-facebook.png'),  label: 'Facebook',  wrapClass: 'fb' },
-    line: { src: trySrc(base + '/qr-line.png'),      label: 'LINE',      wrapClass: 'line' }
-  };
-
-  // preload (ดีช่วยลด flash)
-  Object.values(map).forEach(cfg => {
-    const im = new Image();
-    im.src = cfg.src;
+    initYearAndPreload();
+    initIndex();
+    initContact();
   });
 
-  const qrImg   = document.getElementById('contact-qr-img');
-  const qrWrap  = document.getElementById('qr-wrap');
-  const qrLabel = document.getElementById('qr-platform-label');
-  const fallback= document.getElementById('qr-fallback');
-  const toggleButtons = document.querySelectorAll('[data-show-qr]');
-
-  function showQR(key) {
-    if (!map[key]) return;
-    const conf = map[key];
-
-    // active button visual
-    toggleButtons.forEach(b => b.classList.remove('active'));
-    const btn = document.querySelector('[data-show-qr="' + key + '"]');
-    if (btn) btn.classList.add('active');
-
-    // change wrapper class for color border
-    if (qrWrap) {
-      qrWrap.classList.remove('ig','fb','line');
-      qrWrap.classList.add(conf.wrapClass);
-    }
-
-    if (!qrImg) return;
-
-    // hide fallback during load
-    if (fallback) fallback.classList.add('hidden');
-
-    // try load; onerror shows fallback
-    qrImg.style.display = 'block';
-    qrImg.onload = function () {
-      // success
-      if (fallback) { fallback.classList.add('hidden'); fallback.setAttribute('aria-hidden','true'); }
-    };
-    qrImg.onerror = function () {
-      qrImg.style.display = 'none';
-      if (fallback) { fallback.classList.remove('hidden'); fallback.setAttribute('aria-hidden','false'); }
-    };
-    // set src (this triggers onload/onerror)
-    qrImg.src = conf.src;
-    if (qrLabel) qrLabel.textContent = conf.label;
-  }
-
-  if (toggleButtons && toggleButtons.length) {
-    toggleButtons.forEach(btn => {
-      btn.addEventListener('click', function () {
-        const key = btn.getAttribute('data-show-qr');
-        showQR(key);
-      });
-    });
-  }
-
-  // initial
-  const activeBtn = document.querySelector('[data-show-qr].active') || document.querySelector('[data-show-qr="ig"]');
-  if (activeBtn) {
-    showQR(activeBtn.getAttribute('data-show-qr'));
-  } else {
-    showQR('ig');
-  }
-
-  // DEBUG: ถ้าโหลดไม่ขึ้น ให้ log URL ที่พยายามโหลด
-  // (ลบออกได้เมื่อเสร็จ)
-  //console.log('QR base used:', base);
-});
-
-// js/script.js
-(() => {
-  const img = document.getElementById('contact-qr-img');
-  const wrap = document.getElementById('qr-wrap');
-  const label = document.getElementById('qr-platform-label');
-  const fallback = document.getElementById('qr-fallback');
-
-  const MAP = {
-    ig:   { file: 'qr-instagram.png', label: 'Instagram', cls: 'ig' },
-    fb:   { file: 'qr-facebook.png',   label: 'Facebook',  cls: 'fb' },
-    line: { file: 'qr-line.png',       label: 'LINE',      cls: 'line' }
-  };
-
-  // ใช้ path สัมพันธ์กับไฟล์ HTML เสมอ
-  const ASSETS = './assets/';
-
-  function setPlatform(key) {
-    const m = MAP[key];
-    if (!m) return;
-
-    // สลับปุ่ม active
-    document.querySelectorAll('.btn.btn-ghost').forEach(b => {
-      b.classList.toggle('active', b.dataset.showQr === key);
-      b.setAttribute('aria-pressed', b.dataset.showQr === key ? 'true' : 'false');
-    });
-
-    // อัปเดต UI
-    wrap.className = `qr-wrap ${m.cls}`;
-    label.textContent = m.label;
-
-    // รีเซ็ต fallback + แสดงรูป
-    fallback.classList.add('hidden');
-    img.style.display = '';
-    img.src = ASSETS + m.file;    // ให้โหลดจาก ./assets/ เสมอ
-  }
-
-  // bind events
-  document.querySelectorAll('[data-show-qr]').forEach(btn => {
-    btn.addEventListener('click', () => setPlatform(btn.dataset.showQr));
-  });
-
-  // ค่าเริ่มต้น
-  setPlatform('ig');
 })();
-
-// ล้างค่า filter / blend / inline background-layers และลบองค์ประกอบ overlay ที่มักใช้
-function sanitizeSlideElement(el) {
-  if (!el) return;
-  // เอา inline filter ออก
-  el.style.filter = '';
-  el.style.webkitFilter = '';
-  // บังคับ blend เป็นปกติ (defensive)
-  el.style.mixBlendMode = 'normal';
-  el.style.backgroundBlendMode = 'normal';
-
-  // ถ้ามี background-image หลายชั้น ให้เก็บเฉพาะชั้นแรกที่เป็น url(...) เท่านั้น
-  const computedBg = getComputedStyle(el).backgroundImage || el.style.backgroundImage || '';
-  const url = extractUrl(computedBg);
-  if (url) {
-    el.style.backgroundImage = `url("${url}")`;
-    el.style.backgroundRepeat = 'no-repeat';
-    el.style.backgroundPosition = 'center center';
-    el.style.backgroundSize = 'cover';
-  } else {
-    el.style.backgroundImage = `url("${makeBgFallback(0)}")`; // โปร่งใส
-  }
-
-  // ลบ node overlay พบบ่อย (เปลี่ยน selector ตามโครงจริงของคุณ)
-  el.querySelectorAll('.slide-overlay, .overlay, .veil, .bg-tint').forEach(n => n.remove());
-}
-
-// เรียกกับทุกสไลด์
-document.querySelectorAll('.bg-slideshow .slide').forEach(s => sanitizeSlideElement(s));
-
