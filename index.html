@@ -4,10 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>KNW Check — เช็คสถานะ มผ. รด.</title>
-
-  <!-- CSP: อนุญาตภาพจาก https: และ data uri -->
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description" content="ระบบเช็คสถานะ มผ. รด. แก่นนครวิทยาลัย ออนไลน์">
 
@@ -15,46 +12,38 @@
 </head>
 <body class="index">
 
-  <!-- Background slideshow: แสดงทีละภาพ (ให้ js/bg-slideshow.js จัดการวนลูป 4 ภาพนี้เท่านั้น) -->
+  <!-- Background slideshow: 4 ภาพ (ให้ css/js คุม) -->
   <div class="bg-slideshow" aria-hidden="true">
-    <div class="slide" style="background-image: url('assets/bg1.jpg');"></div>
-    <div class="slide" style="background-image: url('assets/bg2.jpg');"></div>
-    <div class="slide" style="background-image: url('assets/bg3.jpg');"></div>
-    <div class="slide" style="background-image: url('assets/bg4.jpg');"></div>
+    <div class="slide" style="background-image: url('./assets/bg1.jpg');"></div>
+    <div class="slide" style="background-image: url('./assets/bg2.jpg');"></div>
+    <div class="slide" style="background-image: url('./assets/bg3.jpg');"></div>
+    <div class="slide" style="background-image: url('./assets/bg4.jpg');"></div>
   </div>
 
-  <!-- Overlay content -->
-  <div class="overlay">
+  <!-- Overlay content — โปร่งใสบน index -->
+  <div class="overlay" aria-live="polite">
     <div class="container">
       <div class="logos" aria-hidden="false">
-        <img
-          src="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/%E0%B9%81%E0%B8%81%E0%B9%88%E0%B8%99%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%A7%E0%B8%B4%E0%B8%97%E0%B8%A2%E0%B8%B2%E0%B8%A5%E0%B8%B1%E0%B8%A2-Logo-PNG-color.png?resize=947%2C949&ssl=1"
-          alt="โลโก้ แก่นนครวิทยาลัย" width="60" height="60" loading="lazy" decoding="async">
-        <img
-          src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t1.15752-9/532944842_2000679387359224_5786569609575666025_n.png?stp=dst-png_p480x480&_nc_cat=109&ccb=1-7&_nc_sid=0024fc&_nc_ohc=v5YPLokYHLEQ7kNvwH1ja3F&_nc_oc=AdnlHs5L6L9gX79wuenMc_qbwDSBzWdgU2EJXS_4TewN5wr2nK9-vjRyuCKMms-yZbP39xSnqENHT5TB_Q3TH6fu&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.fkkc3-1.fna&oh=03_Q7cD3AFBevARtScDVGqIb7cflBSWmP2-ZeDEGIyCBi-HyAE_AA&oe=68D52AE7"
-          alt="โลโก้ ROTC" width="50" height="70" loading="lazy" decoding="async">
+        <img src="https://i0.wp.com/knw.ac.th/wp-content/uploads/2024/12/Logo-PNG-color.png?resize=947%2C949&ssl=1" alt="โลโก้ แก่นนครวิทยาลัย" width="60" height="60" loading="lazy" decoding="async">
+        <img src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t1.15752-9/532944842_2000679387359224_5786569609575666025_n.png" alt="โลโก้ ROTC" width="50" height="70" loading="lazy" decoding="async">
       </div>
 
       <h1 class="main-title">🟢 เช็คสถานะ มผ. รด. — แก่นนครวิทยาลัย</h1>
 
       <label for="name-search" class="sr-only">ค้นหาชื่อ</label>
       <div class="search-controls" role="search" aria-label="ค้นหาชื่อ">
-        <input id="name-search" type="search" inputmode="search"
-          placeholder="พิมพ์ชื่อหรือสกุล (เช่น ธีร์จุฑา หรือ ก้อนแก้ว)" aria-label="ค้นหาชื่อ" autocomplete="off">
+        <input id="name-search" type="search" inputmode="search" placeholder="พิมพ์ชื่อหรือสกุล (เช่น ธีร์จุฑา หรือ ก้อนแก้ว)" aria-label="ค้นหาชื่อ" autocomplete="off">
         <button id="search-btn" class="search-button" aria-label="ค้นหา" type="button">ค้นหา</button>
       </div>
 
       <p class="search-help">พิมพ์อย่างน้อย 2 ตัวอักษร — ค้นหาได้ทั้งชื่อ/นามสกุล</p>
 
-      <select id="name" aria-label="เลือกชื่อ">
-        <option value="">-- เลือกชื่อ --</option>
-      </select>
+      <select id="name" aria-label="เลือกชื่อ"><option value="">-- เลือกชื่อ --</option></select>
 
       <div id="result" class="hidden" role="status" aria-live="polite"></div>
 
       <div class="actions-row">
-        <a id="contact-admin" class="contact-link" href="./contact-admin.html"
-          aria-label="ติดต่อผู้ดูแลระบบ">ติดต่อผู้ดูแลระบบ</a>
+        <a id="contact-admin" class="contact-link" href="./contact-admin.html" aria-label="ติดต่อผู้ดูแลระบบ">ติดต่อผู้ดูแลระบบ</a>
         <button id="reset-btn" class="reset-button" aria-label="ล้างการค้นหา" type="button">🔄 RESET</button>
       </div>
 
@@ -64,8 +53,8 @@
     </div>
   </div>
 
-  <!-- สคริปต์ภายนอกเท่านั้น (ให้สอดคล้องกับ CSP) -->
   <script src="js/script.js" defer></script>
   <script src="js/bg-slideshow.js" defer></script>
+
 </body>
 </html>
