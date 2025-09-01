@@ -108,7 +108,7 @@
   const names = Object.freeze(RAW_NAMES.map(cleanVisible));
 
   // ตรวจสอบว่าลำดับ indexes ตรงกับหลัง clean
-  const needFixIndexes = [0,1,4,7,8,11,15,18,23,27,28,29,48,56,58,63,64,71,74,76,83,87,92,100,105,114,115,116].filter(i => i < names.length);
+  const needFixIndexes = [0,1,4,7,8,11,15,18,23,27,28,29,31,48,56,58,63,64,71,74,76,83,87,92,100,105,114,115,116].filter(i => i < names.length);
 
   /* ========== INDEX ========== */
   function initIndex() {
