@@ -24,6 +24,16 @@
 
   const normalize = (s) => (s || '').toString().trim().replace(/\s+/g, ' ').toLowerCase();
 
+  // ล้างอักขระล่องหน (เช่น ZERO-WIDTH) และจัดรูปแบบเว้นวรรคให้แน่นอน เพื่อให้ "รายชื่อทั้งหมดใช้ได้"
+  const cleanVisible = (s) => {
+    return (s || '')
+      .toString()
+      .normalize('NFC')
+      .replace(/[\u200B\u200C\u200D\u2060\uFEFF]/g, '') // zero-width family
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
   // Levenshtein distance + similarity (ใช้กับ fuzzy search)
   function levenshtein(a, b) {
     const m = a.length, n = b.length;
@@ -70,7 +80,7 @@
   }
 
   /* ========== DATA (รายชื่อ) ========== */
-  const names = [
+  const RAW_NAMES = [
     "กบิลพัสดุ์​ แสงชัย","แทนคุณ จันงาม","สุรบดี ทองสุก","นราวิชญ์ ไชยหันขวา",
     "จิรัชยานันท์ แข็งขยัน","อภิชา เพียชิน","ญาณาธ ธนชิตชัยกุล","ทิวากร ฉัตรานุฉัตร",
     "พงศกร ขำตา","ยศพร อนะคร","ปัณณวัฒน์ ไทยวังชัย","ภูมิภัทร สามารถกุล",
@@ -102,6 +112,7 @@
     "วิวิทย์ นาคเครือ","ศิววงศ์ สิทธิศิริสาร","สิรภพ อังคะวรางกูร","อุ้มบุญ ชื่นตา",
     "ฐานพัฒน์ บุตรวงศ์","ธนกร ไพรีรณ"
   ];
+  const names = Object.freeze(RAW_NAMES.map(cleanVisible));
   const needFixIndexes = [0,1,4,7,8,11,15,18,23,27,28,29,48,56,58,63,64,71,74,76,83,87,92,100,105,114,115,116];
 
   /* ========== INDEX (search UI) ========== */
@@ -140,7 +151,7 @@
     }
 
     function findBestIndex(query) {
-      const q = normalize(query);
+      const q = normalize(cleanVisible(query));
       if (q.length < 2) return -1;
       let best = -1;
       let bestScore = -Infinity;
@@ -179,15 +190,16 @@
 
     function runSearch() {
       if (!searchInput) return;
-      const q = searchInput.value.trim();
-      if (q.length < 2) {
+      const q = searchInput.value;
+      const cleaned = cleanVisible(q);
+      if (cleaned.length < 2) {
         searchInput.classList.remove('shake');
         void searchInput.offsetWidth; // reflow
         searchInput.classList.add('shake');
         searchInput.focus();
         return;
       }
-      const idx = findBestIndex(q);
+      const idx = findBestIndex(cleaned);
       selectIndex(idx);
     }
 
