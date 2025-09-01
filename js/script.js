@@ -107,8 +107,10 @@
 
   const names = Object.freeze(RAW_NAMES.map(cleanVisible));
 
-  // ตรวจสอบว่าลำดับ indexes ตรงกับหลัง clean
-  const needFixIndexes = [0,1,4,7,8,11,15,18,23,27,28,29,31,48,56,58,63,64,71,74,76,83,87,92,100,105,114,115,116].filter(i => i < names.length);
+  // ค่าดัชนีที่ต้องแจ้ง "ติด มผ." (ตามลำดับหลัง clean แล้ว)
+  const needFixIndexes = [0,1,4,7,8,11,15,18,23,27,28,29,31,48,56,58,63,64,71,74,76,83,87,92,100,105,114,115,116]
+    .filter(i => i < names.length);
+  const needFixSet = new Set(needFixIndexes);
 
   /* ========== INDEX ========== */
   function initIndex() {
@@ -129,16 +131,21 @@
       });
     }
 
+    function clearResultClasses(el) {
+      if (!el) return;
+      el.classList.remove('hidden','status-ok','status-bad','status-warn');
+      if (!el.classList.contains('result')) el.classList.add('result');
+    }
+
     function setResult(text, mode) {
       if (!resultBox) return;
-      resultBox.className = '';
+      clearResultClasses(resultBox);
       if (!text || mode === 'hide') {
         resultBox.textContent = '';
         resultBox.classList.add('hidden');
         return;
       }
       resultBox.textContent = text;
-      resultBox.classList.remove('hidden');
       if (mode === 'ok')   resultBox.classList.add('status-ok');
       if (mode === 'bad')  resultBox.classList.add('status-bad');
       if (mode === 'warn') resultBox.classList.add('status-warn');
@@ -154,6 +161,7 @@
         const first = parts[0] || '';
         const last  = parts[parts.length - 1] || '';
         let score = 0;
+        if (full === q) score += 1.25; // ตรงเป๊ะได้โบนัส
         if (first.includes(q)) score += 0.35;
         if (last.includes(q))  score += 0.45;
         if (full.includes(q))  score += 0.20;
@@ -174,7 +182,7 @@
       nameSelect.dispatchEvent(new Event('change', { bubbles: true }));
       try { nameSelect.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {}
 
-      if (needFixIndexes.includes(idx)) {
+      if (needFixSet.has(idx)) {
         setResult('❌ ติด มผ. — กรุณาแก้ไข❗', 'bad');
       } else {
         setResult('✅ ผ่าน มผ. — ทำดีต่อไป🤟', 'ok');
@@ -203,7 +211,7 @@
     if (nameSelect) nameSelect.addEventListener('change', () => {
       const idx = names.indexOf(nameSelect.value);
       if (idx === -1) return setResult('', 'hide');
-      if (needFixIndexes.includes(idx)) {
+      if (needFixSet.has(idx)) {
         setResult('❌ ติด มผ. — กรุณาแก้ไข❗', 'bad');
       } else {
         setResult('✅ ผ่าน มผ. — ทำดีต่อไป🤟', 'ok');

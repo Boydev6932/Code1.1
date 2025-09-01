@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """
-bump_version.py
-- อัปเดต query param ?v=<mtime> สำหรับไฟล์ JS ที่ระบุใน index.html
-- สามารถรันครั้งเดียว หรือรันแบบ --watch เพื่อเฝ้าดูการเปลี่ยนแปลงของไฟล์
-- Usage:
-    python3 bump_version.py          # bump once (default index and targets)
-    python3 bump_version.py --watch  # watch targets and bump when changed
+ปรับปรุงให้รองรับรูปแบบพาธหลากหลาย และอัปเดตเฉพาะแท็ก <script src="..."> ที่ตรงกับไฟล์เป้าหมาย
+- ตัวอย่างการใช้งาน:
+    python3 bump_version.py          # bump ครั้งเดียว (index.html เริ่มต้น + targets เริ่มต้น)
+    python3 bump_version.py --watch  # เฝ้าดูไฟล์ เปลี่ยนแล้ว bump ให้อัตโนมัติ
     python3 bump_version.py --index path/to/index.html js/script.js js/bg-slideshow.js
     python3 bump_version.py --interval 1 --watch
 """
@@ -23,6 +21,7 @@ def get_mtime_version(path):
     try:
         return str(int(os.path.getmtime(path)))
     except Exception:
+        # หากหาไฟล์ไม่เจอ ให้ใช้เวลาปัจจุบัน เพื่อลดโอกาสชน cache เดิม
         return str(int(time.time()))
 
 def bump(index_path, targets):
@@ -38,10 +37,14 @@ def bump(index_path, targets):
 
     for t in targets:
         version = get_mtime_version(t)
-        # match src="js/script.js" or src="/js/script.js" with optional ?v=...
+        # ให้แมตช์เฉพาะ <script ... src="(./|/)?js/file.js[?v=...]"> แล้วใส่ ?v=<mtime>
+        # อนุญาตพาธนำหน้าเป็น "/" หรือ "./" ได้
         escaped = re.escape(t.lstrip("/"))
-        pattern = re.compile(r'(src\s*=\s*["\']\/?' + escaped + r')(\?v=[^"\']*)?(["\'])', re.IGNORECASE)
-        replacement = r'\1?v=' + version + r'\3'
+        pattern = re.compile(
+            r"(<script[^>]*\bsrc\s*=\s*[\"'])(?:/|\./)?" + escaped + r"(?:\?v=[^\"']*)?([\"'])",
+            re.IGNORECASE,
+        )
+        replacement = r"\1" + t + r"?v=" + version + r"\2"
         new_content, n = pattern.subn(replacement, new_content)
         total_changes += n
         print(f"[INFO] {t} -> v={version} (replacements: {n})")
@@ -102,10 +105,10 @@ def main():
     targets = args.targets if args.targets else DEFAULT_TARGETS
     index_path = args.index
 
-    # normalize target paths (strip leading slashes)
+    # normalize targets (strip leading slashes) เพื่อแมตช์ regex ง่าย
     targets = [t.lstrip("/") for t in targets]
 
-    # initial bump to ensure index has versions now
+    # bump ครั้งแรกให้ index มีเวอร์ชันก่อนเลย
     bump(index_path, targets)
 
     if args.watch:
