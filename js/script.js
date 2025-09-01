@@ -1,17 +1,13 @@
 /* ==========================================================================
-   script.js — FINAL CLEAN
-   - ไม่แตะต้อง/ไม่ใส่ฟิลเตอร์กับพื้นหลัง (ปล่อยให้ CSS ทำ crossfade)
-   - ใช้ภาพจาก ./assets/bg1.jpg ... bg4.jpg เท่านั้น
-   - ไม่มี overlay/เลเยอร์ซ้อน/โค้ดซ้ำ/บั๊ก nextSlide
-   - รวมเฉพาะฟังก์ชันที่จำเป็น: year + preload, Index search, Contact QR
+   script.js — FINAL CLEAN (FIXED)
    ========================================================================== */
 
 (() => {
   'use strict';
 
-  /* ========== CONFIG (คงที่เพื่อกันพาธเพี้ยน) ========== */
+  /* ========== CONFIG ========== */
   const ASSETS_DIR  = './assets';
-  const SLIDE_FILES = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg']; // ต้องมีใน ./assets
+  const SLIDE_FILES = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg'];
 
   /* ========== UTILS ========== */
   const onReady = (fn) => {
@@ -24,17 +20,15 @@
 
   const normalize = (s) => (s || '').toString().trim().replace(/\s+/g, ' ').toLowerCase();
 
-  // ล้างอักขระล่องหน (เช่น ZERO-WIDTH) และจัดรูปแบบเว้นวรรคให้แน่นอน เพื่อให้ "รายชื่อทั้งหมดใช้ได้"
   const cleanVisible = (s) => {
     return (s || '')
       .toString()
       .normalize('NFC')
-      .replace(/[\u200B\u200C\u200D\u2060\uFEFF]/g, '') // zero-width family
+      .replace(/[\u200B\u200C\u200D\u2060\uFEFF]/g, '') // ลบ zero-width
       .replace(/\s+/g, ' ')
       .trim();
   };
 
-  // Levenshtein distance + similarity (ใช้กับ fuzzy search)
   function levenshtein(a, b) {
     const m = a.length, n = b.length;
     if (m === 0) return n;
@@ -54,32 +48,30 @@
     }
     return dp[m][n];
   }
+
   const similarity = (q, t) => {
     const L = Math.max(q.length, t.length) || 1;
     return 1 - (levenshtein(q, t) / L);
   };
 
-  /* ========== ปีใน footer + พรีโหลดภาพสไลด์ + เก็บกวาดสไลด์ (ไม่มีการเปลี่ยนภาพด้วย JS) ========== */
+  /* ========== YEAR + PRELOAD ========== */
   function initYearAndPreload() {
     const yEl = document.getElementById('year');
     if (yEl) yEl.textContent = new Date().getFullYear();
 
-    // พรีโหลดภาพเพื่อลดการกระพริบ (ไม่แก้ไข style พื้นหลัง)
     SLIDE_FILES.forEach(f => {
       const img = new Image();
       img.src = `${ASSETS_DIR}/${f}`;
     });
 
-    // ลบชิ้นส่วนที่อาจบังภาพภายใน .bg-slideshow เท่านั้น (กันหมอก/veil)
     const cont = document.querySelector('.bg-slideshow');
     if (cont) {
       cont.querySelectorAll('.slide .slide-overlay, .slide .veil, .slide .bg-tint, .slide .tint, .slide .mask')
           .forEach(n => n.remove());
-      // ไม่ตั้ง filter/opacity/background ใด ๆ เพิ่ม — ปล่อยให้ CSS คุมล้วน ๆ
     }
   }
 
-  /* ========== DATA (รายชื่อ) ========== */
+  /* ========== DATA ========== */
   const RAW_NAMES = [
     "กบิลพัสดุ์​ แสงชัย","แทนคุณ จันงาม","สุรบดี ทองสุก","นราวิชญ์ ไชยหันขวา",
     "จิรัชยานันท์ แข็งขยัน","อภิชา เพียชิน","ญาณาธ ธนชิตชัยกุล","ทิวากร ฉัตรานุฉัตร",
@@ -112,10 +104,13 @@
     "วิวิทย์ นาคเครือ","ศิววงศ์ สิทธิศิริสาร","สิรภพ อังคะวรางกูร","อุ้มบุญ ชื่นตา",
     "ฐานพัฒน์ บุตรวงศ์","ธนกร ไพรีรณ"
   ];
-  const names = Object.freeze(RAW_NAMES.map(cleanVisible));
-  const needFixIndexes = [0,1,4,7,8,11,15,18,23,27,28,29,48,56,58,63,64,71,74,76,83,87,92,100,105,114,115,116];
 
-  /* ========== INDEX (search UI) ========== */
+  const names = Object.freeze(RAW_NAMES.map(cleanVisible));
+
+  // ตรวจสอบว่าลำดับ indexes ตรงกับหลัง clean
+  const needFixIndexes = [0,1,4,7,8,11,15,18,23,27,28,29,48,56,58,63,64,71,74,76,83,87,92,100,105,114,115,116].filter(i => i < names.length);
+
+  /* ========== INDEX ========== */
   function initIndex() {
     const nameSelect = document.getElementById('name');
     if (!nameSelect) return;
@@ -125,7 +120,6 @@
     const resetBtn    = document.getElementById('reset-btn');
     const resultBox   = document.getElementById('result');
 
-    // เติมรายชื่อใน <select> ถ้ายังไม่มี
     if (nameSelect.options.length <= 1) {
       names.forEach(n => {
         const opt = document.createElement('option');
@@ -153,8 +147,7 @@
     function findBestIndex(query) {
       const q = normalize(cleanVisible(query));
       if (q.length < 2) return -1;
-      let best = -1;
-      let bestScore = -Infinity;
+      let best = -1, bestScore = -Infinity;
       for (let i = 0; i < names.length; i++) {
         const full = normalize(names[i]);
         const parts = full.split(' ');
@@ -190,30 +183,26 @@
 
     function runSearch() {
       if (!searchInput) return;
-      const q = searchInput.value;
-      const cleaned = cleanVisible(q);
-      if (cleaned.length < 2) {
+      const q = cleanVisible(searchInput.value);
+      if (q.length < 2) {
         searchInput.classList.remove('shake');
-        void searchInput.offsetWidth; // reflow
+        void searchInput.offsetWidth;
         searchInput.classList.add('shake');
         searchInput.focus();
         return;
       }
-      const idx = findBestIndex(cleaned);
+      const idx = findBestIndex(q);
       selectIndex(idx);
     }
 
-    // events
     if (searchBtn) searchBtn.addEventListener('click', runSearch);
     if (searchInput) searchInput.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); runSearch(); }
     });
 
     if (nameSelect) nameSelect.addEventListener('change', () => {
-      const val = nameSelect.value;
-      if (!val) { setResult('', 'hide'); return; }
-      const idx = names.indexOf(val);
-      if (idx === -1) { setResult('', 'hide'); return; }
+      const idx = names.indexOf(nameSelect.value);
+      if (idx === -1) return setResult('', 'hide');
       if (needFixIndexes.includes(idx)) {
         setResult('❌ ติด มผ. — กรุณาแก้ไข❗', 'bad');
       } else {
@@ -231,7 +220,7 @@
     });
   }
 
-  /* ========== CONTACT (QR toggles) ========== */
+  /* ========== CONTACT ========== */
   function initContact() {
     const qrImg   = document.getElementById('contact-qr-img') || document.getElementById('qr-img');
     const labelEl = document.getElementById('qr-platform-label');
@@ -245,7 +234,6 @@
       line: { label: 'LINE',      src: `${ASSETS_DIR}/qr-line.png`,      cls: 'line' }
     };
 
-    // พรีโหลด QR
     Object.values(platforms).forEach(p => { const im = new Image(); im.src = p.src; });
 
     function setPlatform(key) {
@@ -266,7 +254,7 @@
     }
 
     buttons.forEach(btn => btn.addEventListener('click', () => setPlatform(btn.getAttribute('data-show-qr'))));
-    setPlatform('ig'); // ค่าเริ่มต้น
+    setPlatform('ig');
   }
 
   /* ========== BOOT ========== */
